@@ -1,0 +1,33 @@
+name: Publish NuGet Package
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Run tests
+        run: dotnet test -c Release --logger "console;verbosity=normal"
+
+      - name: Build and pack
+        run: dotnet pack -c Release --output nupkg
+
+      - name: Install validator
+        run: dotnet tool update Meziantou.Framework.NuGetPackageValidation.Tool --global
+
+      - name: Validate package
+        run: meziantou.validate-nuget-package --excluded-rules IconMustBeSet nupkg/*.nupkg
+
+      - name: Publish to NuGet
+        run: dotnet nuget push nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
