@@ -83,7 +83,7 @@ public class AppStoreServerAPIClient
     {
         var path = "/inApps/v1/subscriptions/extend/mass";
 
-        return await MakeRequestAsync<MassExtendRenewalDateResponse>(path, HttpMethod.Post, null, request, true);
+        return await MakeRequestAsync<MassExtendRenewalDateResponse>(path, HttpMethod.Post, null, request, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/subscriptions/extend/{originalTransactionId}";
 
-        return await MakeRequestAsync<ExtendRenewalDateResponse>(path, HttpMethod.Put, null, request, true);
+        return await MakeRequestAsync<ExtendRenewalDateResponse>(path, HttpMethod.Put, null, request, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public class AppStoreServerAPIClient
 
         var path = $"/inApps/v1/subscriptions/{transactionId}";
 
-        return await MakeRequestAsync<StatusResponse>(path, HttpMethod.Get, queryParams, null, true);
+        return await MakeRequestAsync<StatusResponse>(path, HttpMethod.Get, queryParams, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -146,7 +146,7 @@ public class AppStoreServerAPIClient
 
         var path = $"/inApps/v2/refund/lookup/{transactionId}";
 
-        return await MakeRequestAsync<RefundHistoryResponse>(path, HttpMethod.Get, queryParams, null, true);
+        return await MakeRequestAsync<RefundHistoryResponse>(path, HttpMethod.Get, queryParams, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/subscriptions/extend/mass/{productId}/{requestIdentifier}";
 
-        return await MakeRequestAsync<MassExtendRenewalDateStatusResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<MassExtendRenewalDateStatusResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -177,7 +177,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/notifications/test/{testNotificationToken}";
 
-        return await MakeRequestAsync<CheckTestNotificationResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<CheckTestNotificationResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -200,7 +200,7 @@ public class AppStoreServerAPIClient
 
         var path = "/inApps/v1/notifications/history";
 
-        return await MakeRequestAsync<NotificationHistoryResponse>(path, HttpMethod.Post, queryParams, request, true);
+        return await MakeRequestAsync<NotificationHistoryResponse>(path, HttpMethod.Post, queryParams, request, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class AppStoreServerAPIClient
         var versionStr = GetEnumMemberValue(version);
         var path = $"/inApps/{versionStr}/history/{transactionId}";
 
-        return await MakeRequestAsync<HistoryResponse>(path, HttpMethod.Get, queryParams, null, true);
+        return await MakeRequestAsync<HistoryResponse>(path, HttpMethod.Get, queryParams, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/transactions/{transactionId}";
 
-        return await MakeRequestAsync<TransactionInfoResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<TransactionInfoResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/lookup/{orderId}";
 
-        return await MakeRequestAsync<OrderLookupResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<OrderLookupResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -310,7 +310,7 @@ public class AppStoreServerAPIClient
     {
         var path = "/inApps/v1/notifications/test";
 
-        return await MakeRequestAsync<SendTestNotificationResponse>(path, HttpMethod.Post, null, null, true);
+        return await MakeRequestAsync<SendTestNotificationResponse>(path, HttpMethod.Post, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -325,7 +325,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/transactions/consumption/{transactionId}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -339,7 +339,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v2/transactions/consumption/{transactionId}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -353,7 +353,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/transactions/{originalTransactionId}/appAccountToken";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -367,7 +367,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/messaging/image/{imageIdentifier}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, image, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, image, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -380,7 +380,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/messaging/image/{imageIdentifier}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -393,7 +393,7 @@ public class AppStoreServerAPIClient
     {
         var path = "/inApps/v1/messaging/image/list";
 
-        return await MakeRequestAsync<GetImageListResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<GetImageListResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -407,7 +407,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/messaging/message/{messageIdentifier}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -420,7 +420,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/messaging/message/{messageIdentifier}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -433,7 +433,7 @@ public class AppStoreServerAPIClient
     {
         var path = "/inApps/v1/messaging/message/list";
 
-        return await MakeRequestAsync<GetMessageListResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<GetMessageListResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -451,7 +451,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/messaging/default/{productId}/{locale}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -465,7 +465,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/messaging/default/{productId}/{locale}";
 
-        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false);
+        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -479,7 +479,7 @@ public class AppStoreServerAPIClient
     {
         var path = $"/inApps/v1/transactions/appTransactions/{transactionId}";
 
-        return await MakeRequestAsync<AppTransactionInfoResponse>(path, HttpMethod.Get, null, null, true);
+        return await MakeRequestAsync<AppTransactionInfoResponse>(path, HttpMethod.Get, null, null, true).ConfigureAwait(false);
     }
 
     private async Task<T> MakeRequestAsync<T>(
@@ -522,7 +522,7 @@ public class AppStoreServerAPIClient
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
         }
 
-        using var response = await _httpClient.SendAsync(request);
+        using var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -531,7 +531,7 @@ public class AppStoreServerAPIClient
                 return default!;
             }
 
-            var responseBodyStr = await response.Content.ReadAsStringAsync();
+            var responseBodyStr = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var responseBody = JsonSerializer.Deserialize<T>(responseBodyStr, JsonOptions);
 
             if (responseBody is null)
@@ -544,7 +544,7 @@ public class AppStoreServerAPIClient
 
         try
         {
-            var errorBody = await response.Content.ReadAsStringAsync();
+            var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var error = JsonSerializer.Deserialize<ErrorResponseBody>(errorBody, JsonOptions);
 
             if (error?.ErrorCode.HasValue == true)

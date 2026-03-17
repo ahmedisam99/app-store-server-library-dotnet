@@ -67,7 +67,7 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/jwstransaction"/>
     public async Task<JWSTransactionDecodedPayload> VerifyAndDecodeTransactionAsync(string signedTransaction)
     {
-        var decoded = await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate);
+        var decoded = await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate).ConfigureAwait(false);
 
         if (decoded.BundleId != _bundleId)
         {
@@ -91,7 +91,7 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo"/>
     public async Task<JWSRenewalInfoDecodedPayload> VerifyAndDecodeRenewalInfoAsync(string signedRenewalInfo)
     {
-        var decoded = await VerifyJwtAsync<JWSRenewalInfoDecodedPayload>(signedRenewalInfo, ExtractSignedDate);
+        var decoded = await VerifyJwtAsync<JWSRenewalInfoDecodedPayload>(signedRenewalInfo, ExtractSignedDate).ConfigureAwait(false);
 
         if (decoded.Environment != _environment)
         {
@@ -110,7 +110,7 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/signedpayload"/>
     public async Task<ResponseBodyV2DecodedPayload> VerifyAndDecodeNotificationAsync(string signedPayload)
     {
-        var decoded = await VerifyJwtAsync<ResponseBodyV2DecodedPayload>(signedPayload, ExtractSignedDate);
+        var decoded = await VerifyJwtAsync<ResponseBodyV2DecodedPayload>(signedPayload, ExtractSignedDate).ConfigureAwait(false);
 
         long? appAppleId = null;
         string? bundleId = null;
@@ -168,7 +168,7 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/storekit/apptransaction"/>
     public async Task<AppTransaction> VerifyAndDecodeAppTransactionAsync(string signedAppTransaction)
     {
-        var decoded = await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate);
+        var decoded = await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate).ConfigureAwait(false);
 
         if (decoded.BundleId != _bundleId ||
             (_environment == Environment.Production && _appAppleId is not null && decoded.AppAppleId != _appAppleId))
@@ -193,7 +193,7 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/signedpayload"/>
     public async Task<DecodedRealtimeRequestBody> VerifyAndDecodeRealtimeRequestAsync(string signedPayload)
     {
-        var decoded = await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate);
+        var decoded = await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate).ConfigureAwait(false);
 
         if (_environment == Environment.Production && _appAppleId is not null && decoded.AppAppleId != _appAppleId)
         {
@@ -253,7 +253,7 @@ public class SignedDataVerifier
                 ? DateTimeOffset.UtcNow
                 : signedDateExtractor(payload);
 
-            var publicKey = await VerifyCertificateChainAsync(leafCert, intermediateCert, effectiveDate);
+            var publicKey = await VerifyCertificateChainAsync(leafCert, intermediateCert, effectiveDate).ConfigureAwait(false);
 
             var validationParams = new TokenValidationParameters
             {
@@ -265,7 +265,7 @@ public class SignedDataVerifier
                 RequireSignedTokens = true
             };
 
-            var result = await handler.ValidateTokenAsync(jwt, validationParams);
+            var result = await handler.ValidateTokenAsync(jwt, validationParams).ConfigureAwait(false);
             if (!result.IsValid)
             {
                 throw new VerificationException(VerificationStatus.VerificationFailure, result.Exception);
@@ -302,7 +302,7 @@ public class SignedDataVerifier
             }
         }
 
-        var publicKey = await VerifyCertificateChainCore(leaf, intermediate, effectiveDate);
+        var publicKey = await VerifyCertificateChainCore(leaf, intermediate, effectiveDate).ConfigureAwait(false);
 
         if (_enableOnlineChecks)
         {
