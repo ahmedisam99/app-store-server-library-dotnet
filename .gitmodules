@@ -1,0 +1,3 @@
+[submodule "vendor/app-store-server-library-node"]
+	path = vendor/app-store-server-library-node
+	url = https://github.com/apple/app-store-server-library-node
