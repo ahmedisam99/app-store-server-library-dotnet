@@ -9,6 +9,7 @@ A .NET library for the [App Store Server API](https://developer.apple.com/docume
 1. [Installation](#installation)
 2. [Documentation](#documentation)
 3. [Usage](#usage)
+4. [Using with Dependency Injection](#using-with-dependency-injection)
 
 ## Installation
 
@@ -41,16 +42,13 @@ Download and store the root certificates found in the Apple Root Certificates se
 ### API Usage
 
 ```csharp
-using Enjna.AppStoreServerLibrary;
-using Enjna.AppStoreServerLibrary.Models;
-
 var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
 var keyId = "ABCDEFGHIJ";
 var bundleId = "com.example";
-var encodedKey = File.ReadAllText("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8");
+var privateKey = File.ReadAllText("/path/to/key.p8");
 var environment = Environment.Sandbox;
 
-var client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment);
+var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, bundleId, environment);
 
 var response = await client.RequestTestNotificationAsync();
 Console.WriteLine(response.TestNotificationToken);
@@ -59,9 +57,6 @@ Console.WriteLine(response.TestNotificationToken);
 ### Verification Usage
 
 ```csharp
-using Enjna.AppStoreServerLibrary;
-using Enjna.AppStoreServerLibrary.Models;
-
 var bundleId = "com.example";
 var appleRootCAs = new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") };
 var enableOnlineChecks = true;
@@ -78,16 +73,13 @@ Console.WriteLine(verifiedNotification.NotificationType);
 ### Receipt Usage
 
 ```csharp
-using Enjna.AppStoreServerLibrary;
-using Enjna.AppStoreServerLibrary.Models;
-
 var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
 var keyId = "ABCDEFGHIJ";
 var bundleId = "com.example";
-var encodedKey = File.ReadAllText("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8");
+var privateKey = File.ReadAllText("/path/to/key.p8");
 var environment = Environment.Sandbox;
 
-var client = new AppStoreServerAPIClient(encodedKey, keyId, issuerId, bundleId, environment);
+var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, bundleId, environment);
 
 var appReceipt = "MI...";
 var receiptUtility = new ReceiptUtility();
@@ -96,7 +88,7 @@ if (transactionId is not null)
 {
     var request = new TransactionHistoryRequest
     {
-        Sort = Order.Ascending,
+        Sort = SortOrder.Ascending,
         Revoked = false,
         ProductTypes = [ProductType.AutoRenewable]
     };
@@ -120,11 +112,9 @@ if (transactionId is not null)
 ### Promotional Offer Signature Creation
 
 ```csharp
-using Enjna.AppStoreServerLibrary;
-
 var keyId = "ABCDEFGHIJ";
 var bundleId = "com.example";
-var encodedKey = File.ReadAllText("/path/to/key/SubscriptionKey_ABCDEFGHIJ.p8");
+var privateKey = File.ReadAllText("/path/to/key.p8");
 
 var productId = "<product_id>";
 var subscriptionOfferId = "<subscription_offer_id>";
@@ -132,7 +122,80 @@ var appAccountToken = "<app_account_token>";
 var nonce = Guid.NewGuid();
 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-using var signatureCreator = new PromotionalOfferSignatureCreator(encodedKey, keyId, bundleId);
+using var signatureCreator = new PromotionalOfferSignatureCreator(privateKey, keyId, bundleId);
 var signature = signatureCreator.CreateSignature(productId, subscriptionOfferId, appAccountToken, nonce, timestamp);
 Console.WriteLine(signature);
+```
+
+## Using with Dependency Injection
+
+All classes in this library are thread-safe and can be registered as singletons. The DI container will handle disposal at application shutdown for classes that implement `IDisposable`.
+
+The one class that requires special attention is `AppStoreServerAPIClient`, since it uses an `HttpClient` internally. In .NET, managing `HttpClient` lifetimes manually can lead to socket exhaustion or stale DNS issues. The recommended approach is to use `IHttpClientFactory`.
+
+### Registering the API Client
+
+#### Option 1: Named client with a manual factory registration
+
+```csharp
+builder.Services.AddHttpClient("AppStoreServer");
+
+builder.Services.AddSingleton(sp =>
+{
+    var privateKey = File.ReadAllText("/path/to/key.p8");
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient("AppStoreServer");
+
+    return new AppStoreServerAPIClient(
+        privateKey,
+        keyId: "ABCDEFGHIJ",
+        issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
+        bundleId: "com.example",
+        environment: Environment.Production,
+        httpClient: httpClient
+    );
+});
+```
+
+#### Option 2: Named client with `AddTypedClient`
+
+```csharp
+// Registered as transient by default
+builder.Services.AddHttpClient("AppStoreServer")
+    .AddTypedClient((httpClient, sp) =>
+    {
+        var privateKey = File.ReadAllText("/path/to/key.p8");
+
+        return new AppStoreServerAPIClient(
+            privateKey,
+            keyId: "ABCDEFGHIJ",
+            issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
+            bundleId: "com.example",
+            environment: Environment.Production,
+            httpClient: httpClient
+        );
+    });
+```
+
+In both cases, by passing an externally managed `HttpClient`, the `AppStoreServerAPIClient` will not dispose it, leaving lifetime management to the factory.
+
+### Registering Other Services
+
+The remaining classes don't use `HttpClient` and can be registered directly as singletons:
+
+```csharp
+builder.Services.AddSingleton(new SignedDataVerifier(
+    appleRootCertificates: new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") },
+    enableOnlineChecks: true,
+    environment: Environment.Production,
+    bundleId: "com.example",
+    appAppleId: 123456789
+));
+
+builder.Services.AddSingleton<ReceiptUtility>();
+
+builder.Services.AddSingleton(new PromotionalOfferSignatureCreator(
+    signingKey: File.ReadAllText("/path/to/key.p8"),
+    keyId: "ABCDEFGHIJ",
+    bundleId: "com.example"
+));
 ```
