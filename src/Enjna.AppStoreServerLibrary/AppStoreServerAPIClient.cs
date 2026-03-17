@@ -640,8 +640,6 @@ public class AppStoreServerAPIClient : IDisposable
         {
             _httpClient.Dispose();
         }
-
-        GC.SuppressFinalize(this);
     }
 
     private static string GetEnumMemberValue<TEnum>(TEnum value) where TEnum : struct, Enum

@@ -77,6 +77,5 @@ public abstract class JWSSignatureCreator : IDisposable
         _disposed = true;
 
         _ecdsa.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

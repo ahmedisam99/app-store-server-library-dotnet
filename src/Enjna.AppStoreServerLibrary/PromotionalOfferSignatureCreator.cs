@@ -73,6 +73,5 @@ public class PromotionalOfferSignatureCreator : IDisposable
         _disposed = true;
 
         _signingKey.Dispose();
-        GC.SuppressFinalize(this);
     }
 }

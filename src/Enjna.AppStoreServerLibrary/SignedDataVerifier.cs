@@ -268,33 +268,23 @@ public class SignedDataVerifier : IDisposable
 
             var publicKey = VerifyCertificateChain(leafCert, intermediateCert, effectiveDate);
 
-            try
+            var validationParams = new TokenValidationParameters
             {
-                var validationParams = new TokenValidationParameters
-                {
-                    IssuerSigningKey = publicKey,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ValidateLifetime = false,
-                    RequireExpirationTime = false,
-                    RequireSignedTokens = true
-                };
+                IssuerSigningKey = publicKey,
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = false,
+                RequireExpirationTime = false,
+                RequireSignedTokens = true
+            };
 
-                var result = await handler.ValidateTokenAsync(jwt, validationParams).ConfigureAwait(false);
-                if (!result.IsValid)
-                {
-                    throw new VerificationException(VerificationStatus.VerificationFailure, result.Exception);
-                }
-
-                return payload;
-            }
-            finally
+            var result = await handler.ValidateTokenAsync(jwt, validationParams).ConfigureAwait(false);
+            if (!result.IsValid)
             {
-                if (!_enableOnlineChecks)
-                {
-                    publicKey.ECDsa.Dispose();
-                }
+                throw new VerificationException(VerificationStatus.VerificationFailure, result.Exception);
             }
+
+            return payload;
         }
         catch (VerificationException)
         {
@@ -389,11 +379,6 @@ public class SignedDataVerifier : IDisposable
         {
             lock (CacheLock)
             {
-                if (Cache.TryGetValue(cacheKey, out var existing))
-                {
-                    existing.PublicKey.ECDsa.Dispose();
-                }
-
                 var expiry = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + CacheTimeLimitMilliseconds;
                 Cache[cacheKey] = new CacheEntry(publicKey, expiry);
 
@@ -407,10 +392,7 @@ public class SignedDataVerifier : IDisposable
 
                     foreach (var key in expiredKeys)
                     {
-                        if (Cache.Remove(key, out var evicted))
-                        {
-                            evicted.PublicKey.ECDsa.Dispose();
-                        }
+                        Cache.Remove(key);
                     }
                 }
             }
@@ -439,8 +421,6 @@ public class SignedDataVerifier : IDisposable
 
             Cache.Clear();
         }
-
-        GC.SuppressFinalize(this);
     }
 
     private static void CheckDates(X509Certificate2 cert, DateTimeOffset effectiveDate)
