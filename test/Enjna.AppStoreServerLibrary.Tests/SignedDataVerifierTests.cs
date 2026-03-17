@@ -4,7 +4,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
-using Microsoft.IdentityModel.Tokens;
 using Xunit;
 using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
@@ -53,14 +52,18 @@ public class SignedDataVerifierTests
 
     private static X509Certificate2 CertFromBase64(string base64) => new(Convert.FromBase64String(base64));
 
-    private static SignedDataVerifier CreateVerifier(string rootCertBase64, bool enableOnlineChecks)
+    private static SignedDataVerifier CreateVerifier(
+        string rootCertBase64,
+        bool enableOnlineChecks,
+        string bundleId = "com.example",
+        long appAppleId = 1234)
     {
         return new SignedDataVerifier(
             [Convert.FromBase64String(rootCertBase64)],
             enableOnlineChecks,
             Environment.Production,
-            "com.example",
-            1234);
+            bundleId,
+            appAppleId);
     }
 
     #endregion
@@ -68,66 +71,66 @@ public class SignedDataVerifierTests
     #region Chain Verification Checks
 
     [Fact]
-    public async Task ChainVerification_ValidChainWithoutOCSP()
+    public void ChainVerification_ValidChainWithoutOCSP()
     {
         var verifier = CreateVerifier(ROOT_CA_BASE64, enableOnlineChecks: false);
         var leaf = CertFromBase64(LEAF_CERT_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_BASE64);
 
-        var publicKey = await verifier.VerifyCertificateChainCore(leaf, intermediate, EffectiveDate);
+        var publicKey = verifier.VerifyCertificateChain(leaf, intermediate, EffectiveDate);
 
         var expectedKeyBytes = Convert.FromBase64String(LEAF_CERT_PUBLIC_KEY_BASE64);
-        var ecdsaKey = (publicKey as ECDsaSecurityKey)!.ECDsa;
+        var ecdsaKey = publicKey.ECDsa;
         var actualKeyBytes = ecdsaKey.ExportSubjectPublicKeyInfo();
         Assert.Equal(expectedKeyBytes, actualKeyBytes);
     }
 
     [Fact]
-    public async Task ChainVerification_InvalidIntermediateOID_ThrowsVerificationFailure()
+    public void ChainVerification_InvalidIntermediateOID_ThrowsVerificationFailure()
     {
         var verifier = CreateVerifier(ROOT_CA_BASE64, enableOnlineChecks: false);
         var leaf = CertFromBase64(LEAF_CERT_FOR_INTERMEDIATE_CA_INVALID_OID_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_INVALID_OID_BASE64);
 
-        var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyCertificateChainCore(leaf, intermediate, EffectiveDate));
+        var ex = Assert.Throws<VerificationException>(() =>
+            verifier.VerifyCertificateChain(leaf, intermediate, EffectiveDate));
         Assert.Equal(VerificationStatus.VerificationFailure, ex.Status);
     }
 
     [Fact]
-    public async Task ChainVerification_InvalidLeafOID_ThrowsVerificationFailure()
+    public void ChainVerification_InvalidLeafOID_ThrowsVerificationFailure()
     {
         var verifier = CreateVerifier(ROOT_CA_BASE64, enableOnlineChecks: false);
         var leaf = CertFromBase64(LEAF_CERT_INVALID_OID_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_BASE64);
 
-        var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyCertificateChainCore(leaf, intermediate, EffectiveDate));
+        var ex = Assert.Throws<VerificationException>(() =>
+            verifier.VerifyCertificateChain(leaf, intermediate, EffectiveDate));
         Assert.Equal(VerificationStatus.VerificationFailure, ex.Status);
     }
 
     [Fact]
-    public async Task ChainVerification_EmptyRootCertArray_ThrowsVerificationFailure()
+    public void ChainVerification_EmptyRootCertArray_ThrowsVerificationFailure()
     {
         var verifier = new SignedDataVerifier([], false, Environment.Production, "com.example", 1234);
         var leaf = CertFromBase64(LEAF_CERT_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_BASE64);
 
-        var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyCertificateChainCore(leaf, intermediate, EffectiveDate));
+        var ex = Assert.Throws<VerificationException>(() =>
+            verifier.VerifyCertificateChain(leaf, intermediate, EffectiveDate));
         Assert.Equal(VerificationStatus.VerificationFailure, ex.Status);
     }
 
     [Fact]
-    public async Task ChainVerification_ExpiredChain_Throws()
+    public void ChainVerification_ExpiredChain_Throws()
     {
         var verifier = CreateVerifier(ROOT_CA_BASE64, enableOnlineChecks: false);
         var leaf = CertFromBase64(LEAF_CERT_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_BASE64);
         var farFuture = DateTimeOffset.FromUnixTimeMilliseconds(2280946846000);
 
-        var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyCertificateChainCore(leaf, intermediate, farFuture));
+        var ex = Assert.Throws<VerificationException>(() =>
+            verifier.VerifyCertificateChain(leaf, intermediate, farFuture));
         // .NET's X509Chain.Build fails before CheckDates, so we get VerificationFailure
         // instead of InvalidCertificate (which is what the Node library returns)
         Assert.True(
@@ -137,35 +140,25 @@ public class SignedDataVerifierTests
 
     [Fact]
     [Trait("Category", "Network")]
-    public async Task ChainVerification_RealChainWithOCSP()
+    public void ChainVerification_RealChainWithOCSP()
     {
-        var verifier = new SignedDataVerifier(
-            [Convert.FromBase64String(REAL_APPLE_ROOT_BASE64)],
-            enableOnlineChecks: true,
-            Environment.Production,
-            "com.example",
-            1234);
+        var verifier = CreateVerifier(REAL_APPLE_ROOT_BASE64, enableOnlineChecks: true);
         var leaf = CertFromBase64(REAL_APPLE_SIGNING_CERT_BASE64);
         var intermediate = CertFromBase64(REAL_APPLE_INTERMEDIATE_BASE64);
 
-        var publicKey = await verifier.VerifyCertificateChainAsync(leaf, intermediate, DateTimeOffset.UtcNow);
+        var publicKey = verifier.VerifyCertificateChain(leaf, intermediate, DateTimeOffset.UtcNow);
         Assert.NotNull(publicKey);
     }
 
     [Fact]
-    public async Task ChainVerification_MismatchedRootCerts_ThrowsVerificationFailure()
+    public void ChainVerification_MismatchedRootCerts_ThrowsVerificationFailure()
     {
-        var verifier = new SignedDataVerifier(
-            [Convert.FromBase64String(REAL_APPLE_ROOT_BASE64)],
-            enableOnlineChecks: false,
-            Environment.Production,
-            "com.example",
-            1234);
+        var verifier = CreateVerifier(REAL_APPLE_ROOT_BASE64, enableOnlineChecks: false);
         var leaf = CertFromBase64(LEAF_CERT_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_BASE64);
 
-        var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyCertificateChainCore(leaf, intermediate, EffectiveDate));
+        var ex = Assert.Throws<VerificationException>(() =>
+            verifier.VerifyCertificateChain(leaf, intermediate, EffectiveDate));
         Assert.Equal(VerificationStatus.VerificationFailure, ex.Status);
     }
 
@@ -185,19 +178,17 @@ public class SignedDataVerifierTests
 
     [Fact]
     [Trait("Category", "Network")]
-    public async Task ChainVerification_CacheHit_ReturnsSameEntry()
+    public void ChainVerification_CacheHit_ReturnsSameEntry()
     {
-        var verifier = new SignedDataVerifier(
-            [Convert.FromBase64String(REAL_APPLE_ROOT_BASE64)],
-            enableOnlineChecks: true, Environment.Production, "com.example", 1234);
+        var verifier = CreateVerifier(REAL_APPLE_ROOT_BASE64, enableOnlineChecks: true);
         var leaf = CertFromBase64(REAL_APPLE_SIGNING_CERT_BASE64);
         var intermediate = CertFromBase64(REAL_APPLE_INTERMEDIATE_BASE64);
 
-        await verifier.VerifyCertificateChainAsync(leaf, intermediate, DateTimeOffset.UtcNow);
+        verifier.VerifyCertificateChain(leaf, intermediate, DateTimeOffset.UtcNow);
         Assert.Single(verifier.Cache);
         var entryAfterFirst = verifier.Cache.Values.Single();
 
-        await verifier.VerifyCertificateChainAsync(leaf, intermediate, DateTimeOffset.UtcNow);
+        verifier.VerifyCertificateChain(leaf, intermediate, DateTimeOffset.UtcNow);
         Assert.Single(verifier.Cache);
         var entryAfterSecond = verifier.Cache.Values.Single();
 
@@ -206,15 +197,13 @@ public class SignedDataVerifierTests
 
     [Fact]
     [Trait("Category", "Network")]
-    public async Task ChainVerification_CacheExpires_ReplacesEntry()
+    public void ChainVerification_CacheExpires_ReplacesEntry()
     {
-        var verifier = new SignedDataVerifier(
-            [Convert.FromBase64String(REAL_APPLE_ROOT_BASE64)],
-            enableOnlineChecks: true, Environment.Production, "com.example", 1234);
+        var verifier = CreateVerifier(REAL_APPLE_ROOT_BASE64, enableOnlineChecks: true);
         var leaf = CertFromBase64(REAL_APPLE_SIGNING_CERT_BASE64);
         var intermediate = CertFromBase64(REAL_APPLE_INTERMEDIATE_BASE64);
 
-        await verifier.VerifyCertificateChainAsync(leaf, intermediate, DateTimeOffset.UtcNow);
+        verifier.VerifyCertificateChain(leaf, intermediate, DateTimeOffset.UtcNow);
         var entryBeforeExpiry = verifier.Cache.Values.Single();
 
         // Expire the cache entry
@@ -224,7 +213,7 @@ public class SignedDataVerifierTests
             verifier.Cache[key] = new SignedDataVerifier.CacheEntry(entryBeforeExpiry.PublicKey, 0);
         }
 
-        await verifier.VerifyCertificateChainAsync(leaf, intermediate, DateTimeOffset.UtcNow);
+        verifier.VerifyCertificateChain(leaf, intermediate, DateTimeOffset.UtcNow);
         var entryAfterExpiry = verifier.Cache.Values.Single();
 
         Assert.NotSame(entryBeforeExpiry, entryAfterExpiry);

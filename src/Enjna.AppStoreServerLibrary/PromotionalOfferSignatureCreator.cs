@@ -15,6 +15,7 @@ public class PromotionalOfferSignatureCreator : IDisposable
     private readonly ECDsa _signingKey;
     private readonly string _keyId;
     private readonly string _bundleId;
+    private bool _disposed;
 
     /// <summary>
     /// Creates a new <see cref="PromotionalOfferSignatureCreator"/> instance.
@@ -66,6 +67,9 @@ public class PromotionalOfferSignatureCreator : IDisposable
     /// </summary>
     public void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _signingKey.Dispose();
         GC.SuppressFinalize(this);
     }

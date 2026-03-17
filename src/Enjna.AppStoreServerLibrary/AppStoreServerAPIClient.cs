@@ -22,7 +22,7 @@ namespace Enjna.AppStoreServerLibrary;
 /// A client for the App Store Server API.
 /// </summary>
 /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi"/>
-public class AppStoreServerAPIClient
+public class AppStoreServerAPIClient : IDisposable
 {
     private const string ProductionUrl = "https://api.storekit.itunes.apple.com";
     private const string SandboxUrl = "https://api.storekit-sandbox.itunes.apple.com";
@@ -30,12 +30,14 @@ public class AppStoreServerAPIClient
     private const string UserAgent = "enjna-app-store-server-library/dotnet/1.0.0";
     private static readonly JsonSerializerOptions JsonOptions = new();
 
-    private readonly string _signingKey;
+    private readonly ECDsa _ecdsa;
     private readonly string _keyId;
     private readonly string _issuerId;
     private readonly string _bundleId;
     private readonly string _urlBase;
     private readonly HttpClient _httpClient;
+    private readonly bool _ownsHttpClient;
+    private bool _disposed;
 
     /// <summary>
     /// Creates a new App Store Server API client.
@@ -55,10 +57,12 @@ public class AppStoreServerAPIClient
         Environment environment,
         HttpClient? httpClient = null)
     {
-        _signingKey = signingKey;
+        _ecdsa = ECDsa.Create();
+        _ecdsa.ImportFromPem(signingKey);
         _keyId = keyId;
         _issuerId = issuerId;
         _bundleId = bundleId;
+        _ownsHttpClient = httpClient is null;
         _httpClient = httpClient ?? new HttpClient();
 
         _urlBase = environment switch
@@ -571,10 +575,7 @@ public class AppStoreServerAPIClient
 
     private string CreateBearerToken()
     {
-        var ecdsa = ECDsa.Create();
-        ecdsa.ImportFromPem(_signingKey);
-
-        var securityKey = new ECDsaSecurityKey(ecdsa)
+        var securityKey = new ECDsaSecurityKey(_ecdsa)
         {
             KeyId = _keyId
         };
@@ -593,6 +594,22 @@ public class AppStoreServerAPIClient
 
         var handler = new JsonWebTokenHandler();
         return handler.CreateToken(descriptor);
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        _ecdsa.Dispose();
+
+        if (_ownsHttpClient)
+        {
+            _httpClient.Dispose();
+        }
+
+        GC.SuppressFinalize(this);
     }
 
     private static string GetEnumMemberValue<TEnum>(TEnum value) where TEnum : struct, Enum

@@ -17,6 +17,7 @@ public abstract class JWSSignatureCreator : IDisposable
     private readonly string _keyId;
     private readonly string _issuerId;
     private readonly string _bundleId;
+    private bool _disposed;
 
     /// <summary>
     /// Creates a new <see cref="JWSSignatureCreator"/> instance.
@@ -69,8 +70,11 @@ public abstract class JWSSignatureCreator : IDisposable
     }
 
     /// <inheritdoc/>
-    public void Dispose()
+    public virtual void Dispose()
     {
+        if (_disposed) return;
+        _disposed = true;
+
         _ecdsa.Dispose();
         GC.SuppressFinalize(this);
     }

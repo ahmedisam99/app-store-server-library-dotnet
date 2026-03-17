@@ -15,7 +15,7 @@ namespace Enjna.AppStoreServerLibrary;
 /// <summary>
 /// A class providing utility methods for verifying and decoding App Store signed data.
 /// </summary>
-public class SignedDataVerifier
+public class SignedDataVerifier : IDisposable
 {
     private const long MaxSkewMilliseconds = 60_000;
     private const int MaximumCacheSize = 32;
@@ -30,6 +30,7 @@ public class SignedDataVerifier
     private readonly Environment _environment;
     private readonly string _bundleId;
     private readonly long? _appAppleId;
+    private bool _disposed;
 
     internal readonly object CacheLock = new();
     internal readonly Dictionary<string, CacheEntry> Cache = new();
@@ -67,7 +68,8 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/jwstransaction"/>
     public async Task<JWSTransactionDecodedPayload> VerifyAndDecodeTransactionAsync(string signedTransaction)
     {
-        var decoded = await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate).ConfigureAwait(false);
+        var decoded = await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate)
+            .ConfigureAwait(false);
 
         if (decoded.BundleId != _bundleId)
         {
@@ -91,7 +93,8 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo"/>
     public async Task<JWSRenewalInfoDecodedPayload> VerifyAndDecodeRenewalInfoAsync(string signedRenewalInfo)
     {
-        var decoded = await VerifyJwtAsync<JWSRenewalInfoDecodedPayload>(signedRenewalInfo, ExtractSignedDate).ConfigureAwait(false);
+        var decoded = await VerifyJwtAsync<JWSRenewalInfoDecodedPayload>(signedRenewalInfo, ExtractSignedDate)
+            .ConfigureAwait(false);
 
         if (decoded.Environment != _environment)
         {
@@ -110,7 +113,8 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/signedpayload"/>
     public async Task<ResponseBodyV2DecodedPayload> VerifyAndDecodeNotificationAsync(string signedPayload)
     {
-        var decoded = await VerifyJwtAsync<ResponseBodyV2DecodedPayload>(signedPayload, ExtractSignedDate).ConfigureAwait(false);
+        var decoded = await VerifyJwtAsync<ResponseBodyV2DecodedPayload>(signedPayload, ExtractSignedDate)
+            .ConfigureAwait(false);
 
         long? appAppleId = null;
         string? bundleId = null;
@@ -168,7 +172,8 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/storekit/apptransaction"/>
     public async Task<AppTransaction> VerifyAndDecodeAppTransactionAsync(string signedAppTransaction)
     {
-        var decoded = await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate).ConfigureAwait(false);
+        var decoded = await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate)
+            .ConfigureAwait(false);
 
         if (decoded.BundleId != _bundleId ||
             (_environment == Environment.Production && _appAppleId is not null && decoded.AppAppleId != _appAppleId))
@@ -193,7 +198,8 @@ public class SignedDataVerifier
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/signedpayload"/>
     public async Task<DecodedRealtimeRequestBody> VerifyAndDecodeRealtimeRequestAsync(string signedPayload)
     {
-        var decoded = await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate).ConfigureAwait(false);
+        var decoded = await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate)
+            .ConfigureAwait(false);
 
         if (_environment == Environment.Production && _appAppleId is not null && decoded.AppAppleId != _appAppleId)
         {
@@ -215,21 +221,21 @@ public class SignedDataVerifier
             var handler = new JsonWebTokenHandler();
             var token = handler.ReadJsonWebToken(jwt);
 
-            var payload =
-                JsonSerializer.Deserialize<T>(Base64UrlEncoder.DecodeBytes(token.EncodedPayload), JsonOptions);
+            var payloadJson = Base64UrlEncoder.DecodeBytes(token.EncodedPayload);
+            var payload = JsonSerializer.Deserialize<T>(payloadJson, JsonOptions);
 
             if (payload is null)
             {
                 throw new VerificationException(VerificationStatus.Failure);
             }
 
-            if (_environment == Environment.Xcode || _environment == Environment.LocalTesting)
+            if (_environment is Environment.Xcode or Environment.LocalTesting)
             {
                 return payload;
             }
 
-            var header =
-                JsonSerializer.Deserialize<JWSDecodedHeader>(Base64UrlEncoder.Decode(token.EncodedHeader), JsonOptions);
+            var headerJson = Base64UrlEncoder.Decode(token.EncodedHeader);
+            var header = JsonSerializer.Deserialize<JWSDecodedHeader>(headerJson, JsonOptions);
             var certChain = header?.X5C;
 
             if (certChain is not { Length: 3 })
@@ -237,41 +243,42 @@ public class SignedDataVerifier
                 throw new VerificationException(VerificationStatus.InvalidChainLength);
             }
 
-            X509Certificate2 leafCert;
-            X509Certificate2 intermediateCert;
-            try
-            {
-                leafCert = new X509Certificate2(Convert.FromBase64String(certChain[0]));
-                intermediateCert = new X509Certificate2(Convert.FromBase64String(certChain[1]));
-            }
-            catch (Exception e)
-            {
-                throw new VerificationException(VerificationStatus.InvalidCertificate, e);
-            }
+            using var leafCert = new X509Certificate2(Convert.FromBase64String(certChain[0]));
+            using var intermediateCert = new X509Certificate2(Convert.FromBase64String(certChain[1]));
 
             var effectiveDate = _enableOnlineChecks
                 ? DateTimeOffset.UtcNow
                 : signedDateExtractor(payload);
 
-            var publicKey = await VerifyCertificateChainAsync(leafCert, intermediateCert, effectiveDate).ConfigureAwait(false);
+            var publicKey = VerifyCertificateChain(leafCert, intermediateCert, effectiveDate);
 
-            var validationParams = new TokenValidationParameters
+            try
             {
-                IssuerSigningKey = publicKey,
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = false,
-                RequireExpirationTime = false,
-                RequireSignedTokens = true
-            };
+                var validationParams = new TokenValidationParameters
+                {
+                    IssuerSigningKey = publicKey,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ValidateLifetime = false,
+                    RequireExpirationTime = false,
+                    RequireSignedTokens = true
+                };
 
-            var result = await handler.ValidateTokenAsync(jwt, validationParams).ConfigureAwait(false);
-            if (!result.IsValid)
-            {
-                throw new VerificationException(VerificationStatus.VerificationFailure, result.Exception);
+                var result = await handler.ValidateTokenAsync(jwt, validationParams).ConfigureAwait(false);
+                if (!result.IsValid)
+                {
+                    throw new VerificationException(VerificationStatus.VerificationFailure, result.Exception);
+                }
+
+                return payload;
             }
-
-            return payload;
+            finally
+            {
+                if (!_enableOnlineChecks)
+                {
+                    publicKey.ECDsa.Dispose();
+                }
+            }
         }
         catch (VerificationException)
         {
@@ -283,7 +290,7 @@ public class SignedDataVerifier
         }
     }
 
-    internal async Task<SecurityKey> VerifyCertificateChainAsync(
+    internal ECDsaSecurityKey VerifyCertificateChain(
         X509Certificate2 leaf,
         X509Certificate2 intermediate,
         DateTimeOffset effectiveDate)
@@ -302,40 +309,6 @@ public class SignedDataVerifier
             }
         }
 
-        var publicKey = await VerifyCertificateChainCore(leaf, intermediate, effectiveDate).ConfigureAwait(false);
-
-        if (_enableOnlineChecks)
-        {
-            lock (CacheLock)
-            {
-                Cache[cacheKey] = new CacheEntry(
-                    publicKey,
-                    DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + CacheTimeLimitMilliseconds);
-
-                if (Cache.Count > MaximumCacheSize)
-                {
-                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    var expiredKeys = Cache
-                        .Where(kvp => kvp.Value.ExpiryTimestamp < now)
-                        .Select(kvp => kvp.Key)
-                        .ToList();
-
-                    foreach (var key in expiredKeys)
-                    {
-                        Cache.Remove(key);
-                    }
-                }
-            }
-        }
-
-        return publicKey;
-    }
-
-    internal Task<SecurityKey> VerifyCertificateChainCore(
-        X509Certificate2 leaf,
-        X509Certificate2 intermediate,
-        DateTimeOffset effectiveDate)
-    {
         using var chain = new X509Chain();
         chain.ChainPolicy.RevocationMode = _enableOnlineChecks
             ? X509RevocationMode.Online
@@ -394,7 +367,64 @@ public class SignedDataVerifier
             throw new VerificationException(VerificationStatus.InvalidCertificate);
         }
 
-        return Task.FromResult<SecurityKey>(new ECDsaSecurityKey(ecdsaKey));
+        var publicKey = new ECDsaSecurityKey(ecdsaKey);
+
+        if (_enableOnlineChecks)
+        {
+            lock (CacheLock)
+            {
+                if (Cache.TryGetValue(cacheKey, out var existing))
+                {
+                    existing.PublicKey.ECDsa.Dispose();
+                }
+
+                var expiry = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + CacheTimeLimitMilliseconds;
+                Cache[cacheKey] = new CacheEntry(publicKey, expiry);
+
+                if (Cache.Count > MaximumCacheSize)
+                {
+                    var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                    var expiredKeys = Cache
+                        .Where(kvp => kvp.Value.ExpiryTimestamp < now)
+                        .Select(kvp => kvp.Key)
+                        .ToList();
+
+                    foreach (var key in expiredKeys)
+                    {
+                        if (Cache.Remove(key, out var evicted))
+                        {
+                            evicted.PublicKey.ECDsa.Dispose();
+                        }
+                    }
+                }
+            }
+        }
+
+        return publicKey;
+    }
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        foreach (var cert in _rootCertificates)
+        {
+            cert.Dispose();
+        }
+
+        lock (CacheLock)
+        {
+            foreach (var entry in Cache.Values)
+            {
+                entry.PublicKey.ECDsa.Dispose();
+            }
+
+            Cache.Clear();
+        }
+
+        GC.SuppressFinalize(this);
     }
 
     private static void CheckDates(X509Certificate2 cert, DateTimeOffset effectiveDate)
@@ -430,10 +460,10 @@ public class SignedDataVerifier
 
     internal sealed class CacheEntry
     {
-        public SecurityKey PublicKey { get; }
+        public ECDsaSecurityKey PublicKey { get; }
         public long ExpiryTimestamp { get; }
 
-        public CacheEntry(SecurityKey publicKey, long expiryTimestamp)
+        public CacheEntry(ECDsaSecurityKey publicKey, long expiryTimestamp)
         {
             PublicKey = publicKey;
             ExpiryTimestamp = expiryTimestamp;
