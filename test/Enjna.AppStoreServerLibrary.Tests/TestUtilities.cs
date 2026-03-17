@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Environment = Enjna.AppStoreServerLibrary.Models.Environment;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary.Tests;
 

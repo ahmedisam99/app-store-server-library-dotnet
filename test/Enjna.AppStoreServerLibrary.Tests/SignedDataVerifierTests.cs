@@ -3,9 +3,10 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 using Microsoft.IdentityModel.Tokens;
 using Xunit;
-using Environment = Enjna.AppStoreServerLibrary.Models.Environment;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary.Tests;
 

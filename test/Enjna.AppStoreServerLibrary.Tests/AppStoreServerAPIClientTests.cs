@@ -6,8 +6,9 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 using Xunit;
-using Environment = Enjna.AppStoreServerLibrary.Models.Environment;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary.Tests;
 

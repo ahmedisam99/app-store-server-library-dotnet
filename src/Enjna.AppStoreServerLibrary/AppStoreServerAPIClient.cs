@@ -11,9 +11,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using System.Web;
 using Enjna.AppStoreServerLibrary.Models;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Environment = Enjna.AppStoreServerLibrary.Models.Environment;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary;
 

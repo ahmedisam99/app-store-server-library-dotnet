@@ -1,3 +1,4 @@
+using Enjna.AppStoreServerLibrary.Models.Enums;
 using System;
 
 namespace Enjna.AppStoreServerLibrary.Models;

@@ -1,3 +1,4 @@
+using Enjna.AppStoreServerLibrary.Models.Enums;
 using System;
 using System.Text.Json.Serialization;
 
