@@ -41,15 +41,16 @@ public abstract class JWSSignatureCreator : IDisposable
     /// Creates a signed JWS with the given feature-specific claims.
     /// </summary>
     /// <param name="featureSpecificClaims">The claims specific to the feature being signed.</param>
+    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <returns>The signed JWS.</returns>
-    protected string CreateSignature(Dictionary<string, object> featureSpecificClaims)
+    protected string CreateSignature(Dictionary<string, object> featureSpecificClaims, string? bundleId = null)
     {
         var securityKey = new ECDsaSecurityKey(_ecdsa)
         {
             KeyId = _keyId
         };
 
-        featureSpecificClaims["bid"] = _bundleId;
+        featureSpecificClaims["bid"] = bundleId ?? _bundleId;
         featureSpecificClaims["nonce"] = Guid.NewGuid().ToString();
 
         var descriptor = new SecurityTokenDescriptor

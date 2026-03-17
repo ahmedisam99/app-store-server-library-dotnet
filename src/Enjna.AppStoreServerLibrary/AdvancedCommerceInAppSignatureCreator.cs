@@ -29,8 +29,9 @@ public class AdvancedCommerceInAppSignatureCreator : JWSSignatureCreator
     /// Creates an Advanced Commerce in-app signed request.
     /// </summary>
     /// <param name="request">The request object to be signed.</param>
+    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <returns>The signed JWS.</returns>
-    public string CreateSignature(object request)
+    public string CreateSignature(object request, string? bundleId = null)
     {
         var json = JsonSerializer.Serialize(request, JsonOptions);
         var base64Request = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
@@ -40,6 +41,6 @@ public class AdvancedCommerceInAppSignatureCreator : JWSSignatureCreator
             ["request"] = base64Request
         };
 
-        return base.CreateSignature(claims);
+        return base.CreateSignature(claims, bundleId);
     }
 }

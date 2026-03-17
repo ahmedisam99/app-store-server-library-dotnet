@@ -39,16 +39,18 @@ public class PromotionalOfferSignatureCreator : IDisposable
     /// <param name="appAccountToken">An optional string value that you define; may be an empty string.</param>
     /// <param name="nonce">A one-time UUID value that your server generates. Generate a new nonce for every signature.</param>
     /// <param name="timestamp">A timestamp in UNIX time format, in milliseconds. The timestamp keeps the offer active for 24 hours.</param>
+    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <returns>The Base64 encoded signature.</returns>
     public string CreateSignature(
         string productIdentifier,
         string subscriptionOfferId,
         string appAccountToken,
         Guid nonce,
-        long timestamp)
+        long timestamp,
+        string? bundleId = null)
     {
         var payload = string.Join(Separator,
-            _bundleId,
+            bundleId ?? _bundleId,
             _keyId,
             productIdentifier,
             subscriptionOfferId,

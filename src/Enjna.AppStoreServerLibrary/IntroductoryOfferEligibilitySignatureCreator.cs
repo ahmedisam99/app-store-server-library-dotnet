@@ -26,8 +26,9 @@ public class IntroductoryOfferEligibilitySignatureCreator : JWSSignatureCreator
     /// <param name="productId">The unique identifier of the product.</param>
     /// <param name="allowIntroductoryOffer">A boolean value that determines whether the customer is eligible for an introductory offer.</param>
     /// <param name="transactionId">The unique identifier of any transaction that belongs to the customer.</param>
+    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <returns>The signed JWS.</returns>
-    public string CreateSignature(string productId, bool allowIntroductoryOffer, string transactionId)
+    public string CreateSignature(string productId, bool allowIntroductoryOffer, string transactionId, string? bundleId = null)
     {
         var claims = new Dictionary<string, object>
         {
@@ -36,6 +37,6 @@ public class IntroductoryOfferEligibilitySignatureCreator : JWSSignatureCreator
             ["transactionId"] = transactionId
         };
 
-        return base.CreateSignature(claims);
+        return base.CreateSignature(claims, bundleId);
     }
 }
