@@ -8,7 +8,6 @@ using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Enjna.AppStoreServerLibrary.Models;
@@ -608,12 +607,5 @@ public class AppStoreServerAPIClient
         }
 
         return value.ToString();
-    }
-
-    internal sealed class ErrorResponseBody
-    {
-        [JsonPropertyName("errorCode")] public int? ErrorCode { get; set; }
-
-        [JsonPropertyName("errorMessage")] public string? ErrorMessage { get; set; }
     }
 }

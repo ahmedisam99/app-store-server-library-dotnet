@@ -38,7 +38,7 @@ public sealed class TransactionHistoryRequest
     /// An optional sort order for the transaction history records. The response sorts the transaction records by their recently modified date. The default value is ASCENDING, so you receive the oldest records first.
     /// </summary>
     [JsonPropertyName("sort")]
-    public Order? Sort { get; set; }
+    public SortOrder? Sort { get; set; }
 
     /// <summary>
     /// An optional filter that indicates the subscription group identifier to include in the transaction history. Your query may specify more than one subscriptionGroupIdentifier.

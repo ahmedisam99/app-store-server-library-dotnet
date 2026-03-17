@@ -10,15 +10,32 @@ namespace Enjna.AppStoreServerLibrary.Models;
 [JsonConverter(typeof(JsonEnumMemberConverter<Type>))]
 public enum Type
 {
+    /// <summary>
+    /// Represents a value not yet supported by this version of the library.
+    /// </summary>
+    _Unmapped,
+
+    /// <summary>
+    /// An auto-renewable subscription.
+    /// </summary>
     [EnumMember(Value = "Auto-Renewable Subscription")]
     AutoRenewableSubscription,
 
+    /// <summary>
+    /// A non-consumable In-App Purchase.
+    /// </summary>
     [EnumMember(Value = "Non-Consumable")]
     NonConsumable,
 
+    /// <summary>
+    /// A consumable In-App Purchase.
+    /// </summary>
     [EnumMember(Value = "Consumable")]
     Consumable,
 
+    /// <summary>
+    /// A non-renewing subscription.
+    /// </summary>
     [EnumMember(Value = "Non-Renewing Subscription")]
     NonRenewingSubscription
 }

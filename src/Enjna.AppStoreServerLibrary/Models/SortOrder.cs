@@ -6,8 +6,8 @@ namespace Enjna.AppStoreServerLibrary.Models;
 /// <summary>
 /// The sort order for the transaction history records.
 /// </summary>
-[JsonConverter(typeof(JsonEnumMemberConverter<Order>))]
-public enum Order
+[JsonConverter(typeof(JsonEnumMemberConverter<SortOrder>))]
+public enum SortOrder
 {
     [EnumMember(Value = "ASCENDING")]
     Ascending,

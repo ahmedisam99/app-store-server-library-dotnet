@@ -266,7 +266,7 @@ public class AppStoreServerAPIClientTests
             EndDate = 1698148900000,
             ProductIds = ["com.example.product"],
             ProductTypes = [ProductType.AutoRenewable],
-            Sort = Order.Ascending,
+            Sort = SortOrder.Ascending,
             SubscriptionGroupIdentifiers = ["sub_group_1"],
             InAppOwnershipType = InAppOwnershipType.Purchased,
             Revoked = false
@@ -632,16 +632,17 @@ public class AppStoreServerAPIClientTests
         Assert.Equal("Testing error.", ex.ErrorMessage);
     }
 
-    // 26. Malformed environment in response throws
+    // 26. Malformed environment in response deserializes as _Unmapped
     [Fact]
-    public async Task MalformedEnvironment_ThrowsException()
+    public async Task MalformedEnvironment_DeserializesAs_Unmapped()
     {
         var (client, _) = GetClientWithBody(
             "models.transactionHistoryResponseWithMalformedEnvironment.json", HttpStatusCode.OK);
 
         var request = new TransactionHistoryRequest();
 
-        await Assert.ThrowsAnyAsync<Exception>(() => client.GetTransactionHistoryAsync("999999", null, request));
+        var response = await client.GetTransactionHistoryAsync("999999", null, request);
+        Assert.Equal(Environment._Unmapped, response.Environment);
     }
 
     // 27. Malformed appAppleId in response throws

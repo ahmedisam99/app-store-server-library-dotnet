@@ -10,9 +10,20 @@ namespace Enjna.AppStoreServerLibrary.Models;
 [JsonConverter(typeof(JsonEnumMemberConverter<TransactionReason>))]
 public enum TransactionReason
 {
+    /// <summary>
+    /// Represents a value not yet supported by this version of the library.
+    /// </summary>
+    _Unmapped,
+
+    /// <summary>
+    /// The customer initiated the purchase, which may be for any in-app purchase type: consumable, non-consumable, non-renewing subscription, or auto-renewable subscription.
+    /// </summary>
     [EnumMember(Value = "PURCHASE")]
     Purchase,
 
+    /// <summary>
+    /// The App Store server initiated the purchase transaction to renew an auto-renewable subscription.
+    /// </summary>
     [EnumMember(Value = "RENEWAL")]
     Renewal
 }

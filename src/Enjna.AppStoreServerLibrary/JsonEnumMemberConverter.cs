@@ -16,6 +16,7 @@ internal sealed class JsonEnumMemberConverter<TEnum> : JsonConverter<TEnum> wher
 {
     private static readonly Dictionary<string, TEnum> NameToValue = new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<TEnum, string> ValueToName = new();
+    private static readonly TEnum? UnmappedValue;
 
     static JsonEnumMemberConverter()
     {
@@ -26,26 +27,33 @@ internal sealed class JsonEnumMemberConverter<TEnum> : JsonConverter<TEnum> wher
             var name = attr?.Value ?? field.Name;
             NameToValue[name] = value;
             ValueToName[value] = name;
+
+            if (field.Name == "_Unmapped")
+            {
+                UnmappedValue = value;
+            }
         }
     }
 
     public override TEnum Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        if (reader.TokenType == JsonTokenType.String)
+        if (reader.TokenType != JsonTokenType.String)
         {
-            var str = reader.GetString()!;
-            if (NameToValue.TryGetValue(str, out var value))
-            {
-                return value;
-            }
-        }
-        else if (reader.TokenType == JsonTokenType.Number)
-        {
-            var intValue = reader.GetInt32();
-            return (TEnum)Enum.ToObject(typeof(TEnum), intValue);
+            throw new JsonException($"Unable to convert \"{reader.GetString()}\" to {typeof(TEnum)}");
         }
 
-        throw new JsonException($"Unable to convert \"{reader.GetString()}\" to {typeof(TEnum)}");
+        var str = reader.GetString()!;
+        if (NameToValue.TryGetValue(str, out var value))
+        {
+            return value;
+        }
+
+        if (UnmappedValue.HasValue)
+        {
+            return UnmappedValue.Value;
+        }
+
+        throw new JsonException($"Unable to convert \"{str}\" to {typeof(TEnum)}");
     }
 
     public override void Write(Utf8JsonWriter writer, TEnum value, JsonSerializerOptions options)

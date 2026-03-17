@@ -10,6 +10,11 @@ namespace Enjna.AppStoreServerLibrary.Models;
 [JsonConverter(typeof(JsonEnumMemberConverter<PurchasePlatform>))]
 public enum PurchasePlatform
 {
+    /// <summary>
+    /// Represents a value not yet supported by this version of the library.
+    /// </summary>
+    _Unmapped,
+
     [EnumMember(Value = "iOS")]
     Ios,
 

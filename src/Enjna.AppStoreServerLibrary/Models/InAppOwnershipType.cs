@@ -10,9 +10,20 @@ namespace Enjna.AppStoreServerLibrary.Models;
 [JsonConverter(typeof(JsonEnumMemberConverter<InAppOwnershipType>))]
 public enum InAppOwnershipType
 {
+    /// <summary>
+    /// Represents a value not yet supported by this version of the library.
+    /// </summary>
+    _Unmapped,
+
+    /// <summary>
+    /// The transaction belongs to a family member who benefits from service.
+    /// </summary>
     [EnumMember(Value = "FAMILY_SHARED")]
     FamilyShared,
 
+    /// <summary>
+    /// The transaction belongs to the purchaser.
+    /// </summary>
     [EnumMember(Value = "PURCHASED")]
     Purchased
 }
