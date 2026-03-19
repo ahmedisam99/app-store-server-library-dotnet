@@ -63,7 +63,10 @@ public class AppStoreServerAPIClient : IDisposable
         _issuerId = issuerId;
         _bundleId = bundleId;
         _ownsHttpClient = httpClient is null;
-        _httpClient = httpClient ?? new HttpClient();
+        _httpClient = httpClient ?? new HttpClient(new SocketsHttpHandler
+        {
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5)
+        });
 
         _urlBase = environment switch
         {
