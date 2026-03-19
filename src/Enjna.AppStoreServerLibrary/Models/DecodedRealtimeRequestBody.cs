@@ -1,5 +1,6 @@
-using Enjna.AppStoreServerLibrary.Models.Enums;
+using System;
 using System.Text.Json.Serialization;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -56,4 +57,11 @@ public sealed class DecodedRealtimeRequestBody : DecodedSignedData
     /// </summary>
     [JsonPropertyName("signedDate")]
     public new long SignedDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time that the App Store signed the JSON Web Signature data,
+    /// derived from <see cref="SignedDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public new DateTime SignedDateUtc => DateTimeOffset.FromUnixTimeMilliseconds(SignedDate).UtcDateTime;
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Enjna.AppStoreServerLibrary.Models;
@@ -28,6 +29,15 @@ public sealed class MassExtendRenewalDateStatusResponse
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/completedate"/>
     [JsonPropertyName("completeDate")]
     public long? CompleteDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time that the App Store completes a request to extend a subscription renewal date,
+    /// derived from <see cref="CompleteDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? CompleteDateUtc => CompleteDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(CompleteDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The count of subscriptions that successfully receive a subscription-renewal-date extension.

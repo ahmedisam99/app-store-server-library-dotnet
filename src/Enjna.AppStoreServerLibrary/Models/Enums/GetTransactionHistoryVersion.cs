@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
@@ -12,7 +13,7 @@ public enum GetTransactionHistoryVersion
     /// <summary>
     /// Version 1.
     /// </summary>
-    [System.Obsolete]
+    [Obsolete]
     [EnumMember(Value = "v1")]
     V1,
 

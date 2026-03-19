@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Enjna.AppStoreServerLibrary.Models;
@@ -35,4 +36,13 @@ public sealed class ExtendRenewalDateResponse
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/effectivedate"/>
     [JsonPropertyName("effectiveDate")]
     public long? EffectiveDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time of the new subscription expiration date for a subscription-renewal extension,
+    /// derived from <see cref="EffectiveDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? EffectiveDateUtc => EffectiveDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(EffectiveDate.Value).UtcDateTime
+        : null;
 }

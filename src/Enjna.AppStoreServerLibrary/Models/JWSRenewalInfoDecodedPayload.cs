@@ -1,5 +1,7 @@
-using Enjna.AppStoreServerLibrary.Models.Enums;
+using System;
 using System.Text.Json.Serialization;
+using Enjna.AppStoreServerLibrary.Models.Enums;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -66,6 +68,15 @@ public sealed class JWSRenewalInfoDecodedPayload : DecodedSignedData
     public long? GracePeriodExpiresDate { get; set; }
 
     /// <summary>
+    /// The UTC date and time when the billing grace period for subscription renewals expires,
+    /// derived from <see cref="GracePeriodExpiresDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? GracePeriodExpiresDateUtc => GracePeriodExpiresDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(GracePeriodExpiresDate.Value).UtcDateTime
+        : null;
+
+    /// <summary>
     /// The type of subscription offer.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/offertype"/>
@@ -94,11 +105,29 @@ public sealed class JWSRenewalInfoDecodedPayload : DecodedSignedData
     public long? RecentSubscriptionStartDate { get; set; }
 
     /// <summary>
+    /// The UTC date and time of the earliest start date of a subscription in a series of auto-renewable subscription purchases,
+    /// derived from <see cref="RecentSubscriptionStartDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? RecentSubscriptionStartDateUtc => RecentSubscriptionStartDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(RecentSubscriptionStartDate.Value).UtcDateTime
+        : null;
+
+    /// <summary>
     /// The UNIX time, in milliseconds, when the most recent auto-renewable subscription purchase expires.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/renewaldate"/>
     [JsonPropertyName("renewalDate")]
     public long? RenewalDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time when the most recent auto-renewable subscription purchase expires,
+    /// derived from <see cref="RenewalDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? RenewalDateUtc => RenewalDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(RenewalDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The currency code for the renewalPrice of the subscription.

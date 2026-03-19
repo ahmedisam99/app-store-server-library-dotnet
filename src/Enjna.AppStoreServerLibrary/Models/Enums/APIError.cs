@@ -1,3 +1,5 @@
+using System;
+
 namespace Enjna.AppStoreServerLibrary.Models.Enums;
 
 /// <summary>
@@ -136,7 +138,7 @@ public enum APIError
     /// An error that indicates the query parameter exclude-revoked is invalid.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/invalidexcluderevokederror"/>
-    [System.Obsolete]
+    [Obsolete]
     InvalidExcludeRevoked = 4000025,
 
     /// <summary>
@@ -239,7 +241,7 @@ public enum APIError
     /// An error that indicates the transaction identifier doesn't represent a consumable in-app purchase.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/invalidtransactionnotconsumableerror"/>
-    [System.Obsolete]
+    [Obsolete]
     InvalidTransactionNotConsumable = 4000043,
 
     /// <summary>

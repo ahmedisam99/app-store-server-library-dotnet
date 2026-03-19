@@ -1,5 +1,7 @@
-using Enjna.AppStoreServerLibrary.Models.Enums;
+using System;
 using System.Text.Json.Serialization;
+using Enjna.AppStoreServerLibrary.Models.Enums;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -52,11 +54,29 @@ public sealed class AppTransaction
     public long? ReceiptCreationDate { get; set; }
 
     /// <summary>
+    /// The UTC date and time that the App Store signed the JWS app transaction,
+    /// derived from <see cref="ReceiptCreationDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? ReceiptCreationDateUtc => ReceiptCreationDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(ReceiptCreationDate.Value).UtcDateTime
+        : null;
+
+    /// <summary>
     /// The date the user originally purchased the app from the App Store.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/storekit/apptransaction/3954448-originalpurchasedate"/>
     [JsonPropertyName("originalPurchaseDate")]
     public long? OriginalPurchaseDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time when the user originally purchased the app from the App Store,
+    /// derived from <see cref="OriginalPurchaseDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? OriginalPurchaseDateUtc => OriginalPurchaseDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(OriginalPurchaseDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The app version that the user originally purchased from the App Store.
@@ -85,6 +105,15 @@ public sealed class AppTransaction
     /// <seealso href="https://developer.apple.com/documentation/storekit/apptransaction/4013175-preorderdate"/>
     [JsonPropertyName("preorderDate")]
     public long? PreorderDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time when the customer placed an order for the app before it's available in the App Store,
+    /// derived from <see cref="PreorderDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? PreorderDateUtc => PreorderDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(PreorderDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The unique identifier of the app download transaction.

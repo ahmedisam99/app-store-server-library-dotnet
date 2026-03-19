@@ -1,3 +1,4 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace Enjna.AppStoreServerLibrary.Models;
@@ -21,6 +22,15 @@ public sealed class ExternalPurchaseToken
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/tokencreationdate"/>
     [JsonPropertyName("tokenCreationDate")]
     public long? TokenCreationDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time when the system created the token,
+    /// derived from <see cref="TokenCreationDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? TokenCreationDateUtc => TokenCreationDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(TokenCreationDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The unique identifier of an app in the App Store.

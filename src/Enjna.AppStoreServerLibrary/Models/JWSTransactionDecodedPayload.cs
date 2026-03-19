@@ -1,5 +1,8 @@
-using Enjna.AppStoreServerLibrary.Models.Enums;
+using System;
 using System.Text.Json.Serialization;
+using Enjna.AppStoreServerLibrary.Models.Enums;
+using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
+using Type = Enjna.AppStoreServerLibrary.Models.Enums.Type;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -59,6 +62,15 @@ public sealed class JWSTransactionDecodedPayload : DecodedSignedData
     public long? PurchaseDate { get; set; }
 
     /// <summary>
+    /// The UTC date and time that the App Store charged the user's account,
+    /// derived from <see cref="PurchaseDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? PurchaseDateUtc => PurchaseDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(PurchaseDate.Value).UtcDateTime
+        : null;
+
+    /// <summary>
     /// The purchase date of the transaction associated with the original transaction identifier.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/originalpurchasedate"/>
@@ -66,11 +78,29 @@ public sealed class JWSTransactionDecodedPayload : DecodedSignedData
     public long? OriginalPurchaseDate { get; set; }
 
     /// <summary>
+    /// The UTC date and time of the purchase associated with the original transaction identifier,
+    /// derived from <see cref="OriginalPurchaseDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? OriginalPurchaseDateUtc => OriginalPurchaseDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(OriginalPurchaseDate.Value).UtcDateTime
+        : null;
+
+    /// <summary>
     /// The UNIX time, in milliseconds, an auto-renewable subscription expires or renews.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/expiresdate"/>
     [JsonPropertyName("expiresDate")]
     public long? ExpiresDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time when an auto-renewable subscription expires or renews,
+    /// derived from <see cref="ExpiresDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? ExpiresDateUtc => ExpiresDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(ExpiresDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The number of consumable products purchased.
@@ -113,6 +143,15 @@ public sealed class JWSTransactionDecodedPayload : DecodedSignedData
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/revocationdate"/>
     [JsonPropertyName("revocationDate")]
     public long? RevocationDate { get; set; }
+
+    /// <summary>
+    /// The UTC date and time that Apple Support refunded a transaction,
+    /// derived from <see cref="RevocationDate"/>.
+    /// </summary>
+    [JsonIgnore]
+    public DateTime? RevocationDateUtc => RevocationDate.HasValue
+        ? DateTimeOffset.FromUnixTimeMilliseconds(RevocationDate.Value).UtcDateTime
+        : null;
 
     /// <summary>
     /// The Boolean value that indicates whether the user upgraded to another subscription.
