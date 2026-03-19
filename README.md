@@ -156,12 +156,12 @@ builder.Services.AddSingleton(sp =>
 });
 ```
 
-#### Option 2: Named client with `AddTypedClient`
+#### Option 2: Typed client with `AddTypedClient`
 
 ```csharp
 // Registered as transient by default
-builder.Services.AddHttpClient("AppStoreServer")
-    .AddTypedClient((httpClient, sp) =>
+builder.Services.AddHttpClient<AppStoreServerAPIClient>()
+    .AddTypedClient((httpClient) =>
     {
         var privateKey = File.ReadAllText("/path/to/key.p8");
 
