@@ -119,7 +119,8 @@ public class AppStoreServerAPIClientTests
             StorefrontCountryCodes = ["USA", "MEX"]
         };
 
-        var response = await client.ExtendRenewalDateForAllActiveSubscribersAsync(request);
+        var response = await client.ExtendRenewalDateForAllActiveSubscribersAsync(request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Post, handler.CapturedRequest!.Method);
@@ -141,7 +142,8 @@ public class AppStoreServerAPIClientTests
             ExtendReasonCode = ExtendReasonCode.CustomerSatisfaction
         };
 
-        var response = await client.ExtendSubscriptionRenewalDateAsync("4124214", request);
+        var response = await client.ExtendSubscriptionRenewalDateAsync("4124214", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -159,7 +161,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.getAllSubscriptionStatusesResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetAllSubscriptionStatusesAsync("4321", [Status.Active, Status.Revoked]);
+        var response = await client.GetAllSubscriptionStatusesAsync("4321", [Status.Active, Status.Revoked],
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -181,7 +184,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.getRefundHistoryResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetRefundHistoryAsync("555555", "revision_input");
+        var response = await client.GetRefundHistoryAsync("555555", "revision_input",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -200,7 +204,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.getStatusOfSubscriptionRenewalDateExtensionsResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetStatusOfSubscriptionRenewalDateExtensionsAsync("com.example.product", "test-id");
+        var response = await client.GetStatusOfSubscriptionRenewalDateExtensionsAsync("com.example.product", "test-id",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -219,7 +224,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.getTestNotificationStatusResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetTestNotificationStatusAsync("test-token");
+        var response = await client.GetTestNotificationStatusAsync("test-token",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -242,7 +248,8 @@ public class AppStoreServerAPIClientTests
             EndDate = 1698148900000
         };
 
-        var response = await client.GetNotificationHistoryAsync("test-pagination-token", request);
+        var response = await client.GetNotificationHistoryAsync("test-pagination-token", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Post, handler.CapturedRequest!.Method);
@@ -273,7 +280,8 @@ public class AppStoreServerAPIClientTests
             Revoked = false
         };
 
-        var response = await client.GetTransactionHistoryAsync("999999", "revision_input", request);
+        var response = await client.GetTransactionHistoryAsync("999999", "revision_input", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -298,7 +306,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.transactionInfoResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetTransactionInfoAsync("999999");
+        var response =
+            await client.GetTransactionInfoAsync("999999", cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -313,7 +322,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.lookupOrderIdResponse.json", HttpStatusCode.OK);
 
-        var response = await client.LookUpOrderIdAsync("W002182");
+        var response =
+            await client.LookUpOrderIdAsync("W002182", cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -330,7 +340,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.requestTestNotificationResponse.json", HttpStatusCode.OK);
 
-        var response = await client.RequestTestNotificationAsync();
+        var response =
+            await client.RequestTestNotificationAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Post, handler.CapturedRequest!.Method);
@@ -353,7 +364,8 @@ public class AppStoreServerAPIClientTests
             SampleContentProvided = false
         };
 
-        await client.SendConsumptionInformationAsync("49571273", request);
+        await client.SendConsumptionInformationAsync("49571273", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -382,7 +394,8 @@ public class AppStoreServerAPIClientTests
             SampleContentProvided = true
         };
 
-        await client.SendConsumptionInformationAsync("49571273", request);
+        await client.SendConsumptionInformationAsync("49571273", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -409,7 +422,8 @@ public class AppStoreServerAPIClientTests
             AppAccountToken = "7e3fb20b-4cdb-47cc-936d-99d65f608138"
         };
 
-        await client.SetAppAccountTokenAsync("12345", request);
+        await client.SetAppAccountTokenAsync("12345", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -423,7 +437,7 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.getImageListResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetImageListAsync();
+        var response = await client.GetImageListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -440,7 +454,8 @@ public class AppStoreServerAPIClientTests
     {
         var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
 
-        await client.UploadImageAsync("test-image-id", [0x89, 0x50, 0x4E, 0x47]);
+        await client.UploadImageAsync("test-image-id", [0x89, 0x50, 0x4E, 0x47],
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -453,7 +468,7 @@ public class AppStoreServerAPIClientTests
     {
         var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
 
-        await client.DeleteImageAsync("test-image-id");
+        await client.DeleteImageAsync("test-image-id", cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Delete, handler.CapturedRequest!.Method);
@@ -467,7 +482,7 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.getMessageListResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetMessageListAsync();
+        var response = await client.GetMessageListAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -490,7 +505,8 @@ public class AppStoreServerAPIClientTests
             Body = "Test Body"
         };
 
-        await client.UploadMessageAsync("test-message-id", request);
+        await client.UploadMessageAsync("test-message-id", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -514,7 +530,8 @@ public class AppStoreServerAPIClientTests
             }
         };
 
-        await client.UploadMessageAsync("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", request);
+        await client.UploadMessageAsync("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -537,7 +554,7 @@ public class AppStoreServerAPIClientTests
     {
         var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
 
-        await client.DeleteMessageAsync("test-message-id");
+        await client.DeleteMessageAsync("test-message-id", cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Delete, handler.CapturedRequest!.Method);
@@ -555,7 +572,8 @@ public class AppStoreServerAPIClientTests
             MessageIdentifier = "msg-id"
         };
 
-        await client.ConfigureDefaultMessageAsync("com.example.product", "en-US", request);
+        await client.ConfigureDefaultMessageAsync("com.example.product", "en-US", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
@@ -569,7 +587,8 @@ public class AppStoreServerAPIClientTests
     {
         var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
 
-        await client.DeleteDefaultMessageAsync("com.example.product", "en-US");
+        await client.DeleteDefaultMessageAsync("com.example.product", "en-US",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Delete, handler.CapturedRequest!.Method);
@@ -584,7 +603,8 @@ public class AppStoreServerAPIClientTests
         var (client, handler) = GetClientWithBody(
             "models.appTransactionInfoResponse.json", HttpStatusCode.OK);
 
-        var response = await client.GetAppTransactionInfoAsync("999999");
+        var response =
+            await client.GetAppTransactionInfoAsync("999999", cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
         Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
@@ -600,7 +620,9 @@ public class AppStoreServerAPIClientTests
         var (client, _) = GetClientWithBody(
             "models.apiException.json", HttpStatusCode.InternalServerError);
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.GetTestNotificationStatusAsync("test-token"));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.GetTestNotificationStatusAsync("test-token",
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(500, ex.HttpStatusCode);
         Assert.Equal(APIError.GeneralInternal, ex.ApiError);
         Assert.Equal("An unknown error occurred.", ex.ErrorMessage);
@@ -613,7 +635,9 @@ public class AppStoreServerAPIClientTests
         var (client, _) = GetClientWithBody(
             "models.apiTooManyRequestsException.json", (HttpStatusCode)429);
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.GetTestNotificationStatusAsync("test-token"));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.GetTestNotificationStatusAsync("test-token",
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(429, ex.HttpStatusCode);
         Assert.Equal(APIError.RateLimitExceeded, ex.ApiError);
         Assert.Equal("Rate limit exceeded.", ex.ErrorMessage);
@@ -626,7 +650,9 @@ public class AppStoreServerAPIClientTests
         var (client, _) = GetClientWithBody(
             "models.apiUnknownError.json", HttpStatusCode.BadRequest);
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.GetTestNotificationStatusAsync("test-token"));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.GetTestNotificationStatusAsync("test-token",
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(400, ex.HttpStatusCode);
         Assert.Equal(9990000L, ex.RawApiError);
         Assert.Null(ex.ApiError);
@@ -642,7 +668,8 @@ public class AppStoreServerAPIClientTests
 
         var request = new TransactionHistoryRequest();
 
-        var response = await client.GetTransactionHistoryAsync("999999", null, request);
+        var response = await client.GetTransactionHistoryAsync("999999", null, request,
+            cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(Environment._Unmapped, response.Environment);
     }
 
@@ -655,7 +682,9 @@ public class AppStoreServerAPIClientTests
 
         var request = new TransactionHistoryRequest();
 
-        await Assert.ThrowsAnyAsync<Exception>(() => client.GetTransactionHistoryAsync("999999", null, request));
+        await Assert.ThrowsAnyAsync<Exception>(() =>
+            client.GetTransactionHistoryAsync("999999", null, request,
+                cancellationToken: TestContext.Current.CancellationToken));
     }
 
     // 28. Xcode environment throws ArgumentException
@@ -680,7 +709,8 @@ public class AppStoreServerAPIClientTests
             AppAccountToken = "invalid"
         };
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.SetAppAccountTokenAsync("12345", request));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.SetAppAccountTokenAsync("12345", request, cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(400, ex.HttpStatusCode);
         Assert.Equal(APIError.InvalidAppAccountTokenUuid, ex.ApiError);
     }
@@ -697,7 +727,8 @@ public class AppStoreServerAPIClientTests
             AppAccountToken = "7e3fb20b-4cdb-47cc-936d-99d65f608138"
         };
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.SetAppAccountTokenAsync("12345", request));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.SetAppAccountTokenAsync("12345", request, cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(400, ex.HttpStatusCode);
         Assert.Equal(APIError.FamilyTransactionNotSupported, ex.ApiError);
     }
@@ -714,7 +745,8 @@ public class AppStoreServerAPIClientTests
             AppAccountToken = "7e3fb20b-4cdb-47cc-936d-99d65f608138"
         };
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.SetAppAccountTokenAsync("12345", request));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.SetAppAccountTokenAsync("12345", request, cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(400, ex.HttpStatusCode);
         Assert.Equal(APIError.TransactionIdIsNotOriginalTransactionId, ex.ApiError);
     }
@@ -726,7 +758,8 @@ public class AppStoreServerAPIClientTests
         var (client, _) = GetClientWithBody(
             "models.invalidTransactionIdError.json", HttpStatusCode.BadRequest);
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.GetAppTransactionInfoAsync("invalid"));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.GetAppTransactionInfoAsync("invalid", cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(400, ex.HttpStatusCode);
         Assert.Equal(APIError.InvalidTransactionId, ex.ApiError);
     }
@@ -737,7 +770,8 @@ public class AppStoreServerAPIClientTests
     {
         var (client, _) = GetClientWithBody("models.appTransactionDoesNotExistError.json", HttpStatusCode.NotFound);
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.GetAppTransactionInfoAsync("999999"));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.GetAppTransactionInfoAsync("999999", cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(404, ex.HttpStatusCode);
         Assert.Equal(APIError.AppTransactionDoesNotExist, ex.ApiError);
     }
@@ -748,7 +782,8 @@ public class AppStoreServerAPIClientTests
     {
         var (client, _) = GetClientWithBody("models.transactionIdNotFoundError.json", HttpStatusCode.NotFound);
 
-        var ex = await Assert.ThrowsAsync<APIException>(() => client.GetAppTransactionInfoAsync("999999"));
+        var ex = await Assert.ThrowsAsync<APIException>(() =>
+            client.GetAppTransactionInfoAsync("999999", cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(404, ex.HttpStatusCode);
         Assert.Equal(APIError.TransactionIdNotFound, ex.ApiError);
     }
@@ -770,13 +805,15 @@ public class AppStoreServerAPIClientTests
             AppAccountToken = "7389a31a-fb6d-4569-a2a6-db7d85d84813",
             AccountTenure = AccountTenure.ThirtyDaysToNinetyDays,
             PlayTime = PlayTime.OneDayToFourDays,
-            LifetimeDollarsRefunded = LifetimeDollarsRefunded.OneThousandDollarsToOneThousandNineHundredNinetyNineDollarsAndNinetyNineCents,
+            LifetimeDollarsRefunded = LifetimeDollarsRefunded
+                .OneThousandDollarsToOneThousandNineHundredNinetyNineDollarsAndNinetyNineCents,
             LifetimeDollarsPurchased = LifetimeDollarsPurchased.TwoThousandDollarsOrGreater,
             UserStatus = UserStatus.LimitedAccess,
             RefundPreference = RefundPreferenceV1.NoPreference
         };
 
-        await client.SendConsumptionDataAsync("49571273", request);
+        await client.SendConsumptionDataAsync("49571273", request,
+            cancellationToken: TestContext.Current.CancellationToken);
 #pragma warning restore CS0618
 
         AssertCommonHeaders(handler);
@@ -809,7 +846,8 @@ public class AppStoreServerAPIClientTests
         var request = new TransactionHistoryRequest();
 
 #pragma warning disable CS0612 // Type or member is obsolete
-        await client.GetTransactionHistoryAsync("999999", null, request, GetTransactionHistoryVersion.V1);
+        await client.GetTransactionHistoryAsync("999999", null, request, GetTransactionHistoryVersion.V1,
+            cancellationToken: TestContext.Current.CancellationToken);
 #pragma warning restore CS0612 // Type or member is obsolete
 
         Assert.Equal("/inApps/v1/history/999999", handler.CapturedRequest!.RequestUri!.AbsolutePath);
@@ -821,7 +859,7 @@ public class AppStoreServerAPIClientTests
     {
         var (client, handler) = GetClientWithBody("models.getAllSubscriptionStatusesResponse.json", HttpStatusCode.OK);
 
-        await client.GetAllSubscriptionStatusesAsync("4321");
+        await client.GetAllSubscriptionStatusesAsync("4321", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("/inApps/v1/subscriptions/4321", handler.CapturedRequest!.RequestUri!.AbsolutePath);
         Assert.Equal("", handler.CapturedRequest.RequestUri.Query);
@@ -833,7 +871,7 @@ public class AppStoreServerAPIClientTests
     {
         var (client, handler) = GetClientWithBody("models.getRefundHistoryResponse.json", HttpStatusCode.OK);
 
-        await client.GetRefundHistoryAsync("555555");
+        await client.GetRefundHistoryAsync("555555", cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("/inApps/v2/refund/lookup/555555", handler.CapturedRequest!.RequestUri!.AbsolutePath);
         Assert.Equal("", handler.CapturedRequest.RequestUri.Query);

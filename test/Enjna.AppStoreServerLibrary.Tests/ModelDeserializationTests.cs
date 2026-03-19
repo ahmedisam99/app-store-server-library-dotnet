@@ -16,7 +16,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.appTransaction.json");
 
-        var decoded = await verifier.VerifyAndDecodeAppTransactionAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeAppTransactionAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(Environment.LocalTesting, decoded.ReceiptType);
         Assert.Equal(531412L, decoded.AppAppleId);
@@ -39,7 +41,7 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedRenewalInfo.json");
 
-        var decoded = await verifier.VerifyAndDecodeRenewalInfoAsync(signed);
+        var decoded = await verifier.VerifyAndDecodeRenewalInfoAsync(signed, TestContext.Current.CancellationToken);
 
         Assert.Equal(ExpirationIntent.CustomerCancelled, decoded.ExpirationIntent);
         Assert.Equal("12345", decoded.OriginalTransactionId);
@@ -70,7 +72,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedTransaction.json");
 
-        var decoded = await verifier.VerifyAndDecodeTransactionAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeTransactionAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("23456", decoded.TransactionId);
         Assert.Equal("12345", decoded.OriginalTransactionId);
@@ -108,7 +112,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedTransactionWithRevocation.json");
 
-        var decoded = await verifier.VerifyAndDecodeTransactionAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeTransactionAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal("12345", decoded.OriginalTransactionId);
         Assert.Equal("23456", decoded.TransactionId);
@@ -148,7 +154,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedNotification.json");
 
-        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeNotificationAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(NotificationTypeV2.Subscribed, decoded.NotificationType);
         Assert.Equal(Subtype.InitialBuy, decoded.Subtype);
@@ -174,7 +182,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedConsumptionRequestNotification.json");
 
-        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeNotificationAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(NotificationTypeV2.ConsumptionRequest, decoded.NotificationType);
         Assert.Null(decoded.Subtype);
@@ -200,7 +210,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedSummaryNotification.json");
 
-        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeNotificationAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(NotificationTypeV2.RenewalExtension, decoded.NotificationType);
         Assert.Equal(Subtype.Summary, decoded.Subtype);
@@ -227,7 +239,8 @@ public class ModelDeserializationTests
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenNotification.json");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signed));
+            verifier.VerifyAndDecodeNotificationAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidEnvironment, ex.Status);
 
         // Verify deserialization of all fields via direct JSON deserialization
@@ -255,10 +268,12 @@ public class ModelDeserializationTests
         // Same approach: externalPurchaseId starts with "SANDBOX_", so derived env = Sandbox.
         // Verifier env = LocalTesting → environment mismatch → InvalidEnvironment.
         var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting, "com.example", 55555);
-        var signed = TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenSandboxNotification.json");
+        var signed =
+            TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenSandboxNotification.json");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signed));
+            verifier.VerifyAndDecodeNotificationAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidEnvironment, ex.Status);
 
         // Verify fields via deserialization
@@ -286,7 +301,9 @@ public class ModelDeserializationTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedRescindConsentNotification.json");
 
-        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signed);
+        var decoded =
+            await verifier.VerifyAndDecodeNotificationAsync(signed,
+                cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(NotificationTypeV2.RescindConsent, decoded.NotificationType);
         Assert.Null(decoded.Subtype);

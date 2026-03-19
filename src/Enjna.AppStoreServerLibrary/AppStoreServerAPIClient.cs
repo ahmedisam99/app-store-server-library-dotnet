@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Enjna.AppStoreServerLibrary.Models;
@@ -80,16 +81,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="request">The request body for extending a subscription renewal date for all of its active subscribers.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that indicates the server successfully received the subscription-renewal-date extension request.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/extend_subscription_renewal_dates_for_all_active_subscribers"/>
     public async Task<MassExtendRenewalDateResponse> ExtendRenewalDateForAllActiveSubscribersAsync(
         MassExtendRenewalDateRequest request,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = "/inApps/v1/subscriptions/extend/mass";
-
-        return await MakeRequestAsync<MassExtendRenewalDateResponse>(path, HttpMethod.Post, null, request, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<MassExtendRenewalDateResponse>(
+                path: "/inApps/v1/subscriptions/extend/mass",
+                method: HttpMethod.Post,
+                queryParameters: null,
+                body: request,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -98,17 +107,25 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="originalTransactionId">The original transaction identifier of the subscription receiving a renewal date extension.</param>
     /// <param name="request">The request body containing subscription-renewal-extension data.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that indicates whether an individual renewal-date extension succeeded, and related details.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/extend_a_subscription_renewal_date"/>
     public async Task<ExtendRenewalDateResponse> ExtendSubscriptionRenewalDateAsync(
         string originalTransactionId,
         ExtendRenewalDateRequest request,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/subscriptions/extend/{originalTransactionId}";
-
-        return await MakeRequestAsync<ExtendRenewalDateResponse>(path, HttpMethod.Put, null, request, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<ExtendRenewalDateResponse>(
+                path: $"/inApps/v1/subscriptions/extend/{originalTransactionId}",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -117,13 +134,15 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
     /// <param name="status">An optional filter that indicates the status of subscriptions to include in the response. Your query may specify more than one status query parameter.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains status information for all of a customer's auto-renewable subscriptions in your app.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses"/>
     public async Task<StatusResponse> GetAllSubscriptionStatusesAsync(
         string transactionId,
         Status[]? status = null,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
         var queryParams = new Dictionary<string, string[]>();
         if (status is not null)
@@ -131,9 +150,15 @@ public class AppStoreServerAPIClient : IDisposable
             queryParams["status"] = status.Select(s => ((int)s).ToString()).ToArray();
         }
 
-        var path = $"/inApps/v1/subscriptions/{transactionId}";
-
-        return await MakeRequestAsync<StatusResponse>(path, HttpMethod.Get, queryParams, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<StatusResponse>(
+                path: $"/inApps/v1/subscriptions/{transactionId}",
+                method: HttpMethod.Get,
+                queryParameters: queryParams,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -142,13 +167,15 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
     /// <param name="revision">A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous <see cref="RefundHistoryResponse"/>.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains status information for all of a customer's auto-renewable subscriptions in your app.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_refund_history"/>
     public async Task<RefundHistoryResponse> GetRefundHistoryAsync(
         string transactionId,
         string? revision = null,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
         var queryParams = new Dictionary<string, string[]>();
         if (revision is not null)
@@ -156,9 +183,15 @@ public class AppStoreServerAPIClient : IDisposable
             queryParams["revision"] = [revision];
         }
 
-        var path = $"/inApps/v2/refund/lookup/{transactionId}";
-
-        return await MakeRequestAsync<RefundHistoryResponse>(path, HttpMethod.Get, queryParams, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<RefundHistoryResponse>(
+                path: $"/inApps/v2/refund/lookup/{transactionId}",
+                method: HttpMethod.Get,
+                queryParameters: queryParams,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -167,17 +200,25 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="requestIdentifier">The UUID that represents your request to the Extend Subscription Renewal Dates for All Active Subscribers endpoint.</param>
     /// <param name="productId">The product identifier of the auto-renewable subscription that you request a renewal-date extension for.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that indicates the current status of a request to extend the subscription renewal date to all eligible subscribers.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_status_of_subscription_renewal_date_extensions"/>
     public async Task<MassExtendRenewalDateStatusResponse> GetStatusOfSubscriptionRenewalDateExtensionsAsync(
         string requestIdentifier,
         string productId,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/subscriptions/extend/mass/{productId}/{requestIdentifier}";
-
-        return await MakeRequestAsync<MassExtendRenewalDateStatusResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<MassExtendRenewalDateStatusResponse>(
+                path: $"/inApps/v1/subscriptions/extend/mass/{productId}/{requestIdentifier}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -185,14 +226,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="testNotificationToken">The test notification token received from the Request a Test Notification endpoint.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains the contents of the test notification sent by the App Store server and the result from your server.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_test_notification_status"/>
-    public async Task<CheckTestNotificationResponse> GetTestNotificationStatusAsync(string testNotificationToken, string? bundleId = null)
+    public async Task<CheckTestNotificationResponse> GetTestNotificationStatusAsync(
+        string testNotificationToken,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/notifications/test/{testNotificationToken}";
-
-        return await MakeRequestAsync<CheckTestNotificationResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<CheckTestNotificationResponse>(
+                path: $"/inApps/v1/notifications/test/{testNotificationToken}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -201,13 +252,15 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="paginationToken">An optional token you use to get the next set of up to 20 notification history records. All responses that have more records available include a paginationToken. Omit this parameter the first time you call this endpoint.</param>
     /// <param name="request">The request body that includes the start and end dates, and optional query constraints.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains the App Store Server Notifications history for your app.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_notification_history"/>
     public async Task<NotificationHistoryResponse> GetNotificationHistoryAsync(
         string? paginationToken,
         NotificationHistoryRequest request,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
         var queryParams = new Dictionary<string, string[]>();
         if (paginationToken is not null)
@@ -215,9 +268,15 @@ public class AppStoreServerAPIClient : IDisposable
             queryParams["paginationToken"] = [paginationToken];
         }
 
-        var path = "/inApps/v1/notifications/history";
-
-        return await MakeRequestAsync<NotificationHistoryResponse>(path, HttpMethod.Post, queryParams, request, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<NotificationHistoryResponse>(
+                path: "/inApps/v1/notifications/history",
+                method: HttpMethod.Post,
+                queryParameters: queryParams,
+                body: request,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -228,6 +287,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="request">The request body that includes query constraints.</param>
     /// <param name="version">The version of the Get Transaction History endpoint to use. V2 is recommended.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains the customer's transaction history for an app.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history"/>
@@ -236,7 +296,8 @@ public class AppStoreServerAPIClient : IDisposable
         string? revision,
         TransactionHistoryRequest request,
         GetTransactionHistoryVersion version = GetTransactionHistoryVersion.V2,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
         var queryParams = new Dictionary<string, string[]>();
 
@@ -286,9 +347,16 @@ public class AppStoreServerAPIClient : IDisposable
         }
 
         var versionStr = GetEnumMemberValue(version);
-        var path = $"/inApps/{versionStr}/history/{transactionId}";
 
-        return await MakeRequestAsync<HistoryResponse>(path, HttpMethod.Get, queryParams, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<HistoryResponse>(
+                path: $"/inApps/{versionStr}/history/{transactionId}",
+                method: HttpMethod.Get,
+                queryParameters: queryParams,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -296,14 +364,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains signed transaction information for a single transaction.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_transaction_info"/>
-    public async Task<TransactionInfoResponse> GetTransactionInfoAsync(string transactionId, string? bundleId = null)
+    public async Task<TransactionInfoResponse> GetTransactionInfoAsync(
+        string transactionId,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/transactions/{transactionId}";
-
-        return await MakeRequestAsync<TransactionInfoResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<TransactionInfoResponse>(
+                path: $"/inApps/v1/transactions/{transactionId}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -311,28 +389,47 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="orderId">The order ID for in-app purchases that belong to the customer.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that includes the order lookup status and an array of signed transactions for the in-app purchases in the order.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/look_up_order_id"/>
-    public async Task<OrderLookupResponse> LookUpOrderIdAsync(string orderId, string? bundleId = null)
+    public async Task<OrderLookupResponse> LookUpOrderIdAsync(
+        string orderId,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/lookup/{orderId}";
-
-        return await MakeRequestAsync<OrderLookupResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<OrderLookupResponse>(
+                path: $"/inApps/v1/lookup/{orderId}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
     /// Ask App Store Server Notifications to send a test notification to your server.
     /// </summary>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains the test notification token.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/request_a_test_notification"/>
-    public async Task<SendTestNotificationResponse> RequestTestNotificationAsync(string? bundleId = null)
+    public async Task<SendTestNotificationResponse> RequestTestNotificationAsync(
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = "/inApps/v1/notifications/test";
-
-        return await MakeRequestAsync<SendTestNotificationResponse>(path, HttpMethod.Post, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<SendTestNotificationResponse>(
+                path: "/inApps/v1/notifications/test",
+                method: HttpMethod.Post,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -341,14 +438,25 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="transactionId">The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server.</param>
     /// <param name="request">The request body containing consumption information.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information-v1"/>
     [Obsolete("Use SendConsumptionInformationAsync instead.")]
-    public async Task SendConsumptionDataAsync(string transactionId, ConsumptionRequestV1 request, string? bundleId = null)
+    public async Task SendConsumptionDataAsync(
+        string transactionId,
+        ConsumptionRequestV1 request,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/transactions/consumption/{transactionId}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/transactions/consumption/{transactionId}",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -357,13 +465,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="transactionId">The transaction identifier for which you're providing consumption information. You receive this identifier in the CONSUMPTION_REQUEST notification the App Store sends to your server's App Store Server Notifications V2 endpoint.</param>
     /// <param name="request">The request body containing consumption information.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/send-consumption-information"/>
-    public async Task SendConsumptionInformationAsync(string transactionId, ConsumptionRequest request, string? bundleId = null)
+    public async Task SendConsumptionInformationAsync(
+        string transactionId,
+        ConsumptionRequest request,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v2/transactions/consumption/{transactionId}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v2/transactions/consumption/{transactionId}",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -372,13 +491,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="originalTransactionId">The original transaction identifier of the transaction to receive the app account token update.</param>
     /// <param name="request">The request body that contains a valid app account token value.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/set-app-account-token"/>
-    public async Task SetAppAccountTokenAsync(string originalTransactionId, UpdateAppAccountTokenRequest request, string? bundleId = null)
+    public async Task SetAppAccountTokenAsync(
+        string originalTransactionId,
+        UpdateAppAccountTokenRequest request,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/transactions/{originalTransactionId}/appAccountToken";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/transactions/{originalTransactionId}/appAccountToken",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -387,13 +517,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="imageIdentifier">A UUID you provide to uniquely identify the image you upload. Must be lowercase.</param>
     /// <param name="image">The image file to upload.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/upload-image"/>
-    public async Task UploadImageAsync(string imageIdentifier, byte[] image, string? bundleId = null)
+    public async Task UploadImageAsync(
+        string imageIdentifier,
+        byte[] image,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/messaging/image/{imageIdentifier}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, image, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/messaging/image/{imageIdentifier}",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: image,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -401,27 +542,46 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="imageIdentifier">The identifier of the image to delete.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/delete-image"/>
-    public async Task DeleteImageAsync(string imageIdentifier, string? bundleId = null)
+    public async Task DeleteImageAsync(
+        string imageIdentifier,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/messaging/image/{imageIdentifier}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/messaging/image/{imageIdentifier}",
+                method: HttpMethod.Delete,
+                queryParameters: null,
+                body: null,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
     /// Get the image identifier and state for all uploaded images.
     /// </summary>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains status information for all images.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/get-image-list"/>
-    public async Task<GetImageListResponse> GetImageListAsync(string? bundleId = null)
+    public async Task<GetImageListResponse> GetImageListAsync(
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = "/inApps/v1/messaging/image/list";
-
-        return await MakeRequestAsync<GetImageListResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<GetImageListResponse>(
+                path: "/inApps/v1/messaging/image/list",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -430,13 +590,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="messageIdentifier">A UUID you provide to uniquely identify the message you upload. Must be lowercase.</param>
     /// <param name="request">The message text to upload.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/upload-message"/>
-    public async Task UploadMessageAsync(string messageIdentifier, UploadMessageRequestBody request, string? bundleId = null)
+    public async Task UploadMessageAsync(
+        string messageIdentifier,
+        UploadMessageRequestBody request,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/messaging/message/{messageIdentifier}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/messaging/message/{messageIdentifier}",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -444,27 +615,46 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="messageIdentifier">The identifier of the message to delete.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/delete-message"/>
-    public async Task DeleteMessageAsync(string messageIdentifier, string? bundleId = null)
+    public async Task DeleteMessageAsync(
+        string messageIdentifier,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/messaging/message/{messageIdentifier}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/messaging/message/{messageIdentifier}",
+                method: HttpMethod.Delete,
+                queryParameters: null,
+                body: null,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
     /// Get the message identifier and state of all uploaded messages.
     /// </summary>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains status information for all messages.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/get-message-list"/>
-    public async Task<GetMessageListResponse> GetMessageListAsync(string? bundleId = null)
+    public async Task<GetMessageListResponse> GetMessageListAsync(
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = "/inApps/v1/messaging/message/list";
-
-        return await MakeRequestAsync<GetMessageListResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<GetMessageListResponse>(
+                path: "/inApps/v1/messaging/message/list",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -474,17 +664,25 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="locale">The locale for the default configuration.</param>
     /// <param name="request">The request body that includes the message identifier to configure as the default message.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/configure-default-message"/>
     public async Task ConfigureDefaultMessageAsync(
         string productId,
         string locale,
         DefaultConfigurationRequest request,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/messaging/default/{productId}/{locale}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Put, null, request, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/messaging/default/{productId}/{locale}",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -493,13 +691,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="productId">The product ID of the default message configuration.</param>
     /// <param name="locale">The locale of the default message configuration.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/delete-default-message"/>
-    public async Task DeleteDefaultMessageAsync(string productId, string locale, string? bundleId = null)
+    public async Task DeleteDefaultMessageAsync(
+        string productId,
+        string locale,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/messaging/default/{productId}/{locale}";
-
-        await MakeRequestAsync<object?>(path, HttpMethod.Delete, null, null, false, bundleId).ConfigureAwait(false);
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/messaging/default/{productId}/{locale}",
+                method: HttpMethod.Delete,
+                queryParameters: null,
+                body: null,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     /// <summary>
@@ -507,14 +716,24 @@ public class AppStoreServerAPIClient : IDisposable
     /// </summary>
     /// <param name="transactionId">Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains signed app transaction information for a customer.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info"/>
-    public async Task<AppTransactionInfoResponse> GetAppTransactionInfoAsync(string transactionId, string? bundleId = null)
+    public async Task<AppTransactionInfoResponse> GetAppTransactionInfoAsync(
+        string transactionId,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var path = $"/inApps/v1/transactions/appTransactions/{transactionId}";
-
-        return await MakeRequestAsync<AppTransactionInfoResponse>(path, HttpMethod.Get, null, null, true, bundleId).ConfigureAwait(false);
+        return await MakeRequestAsync<AppTransactionInfoResponse>(
+                path: $"/inApps/v1/transactions/appTransactions/{transactionId}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
     }
 
     private async Task<T> MakeRequestAsync<T>(
@@ -523,7 +742,8 @@ public class AppStoreServerAPIClient : IDisposable
         Dictionary<string, string[]>? queryParameters,
         object? body,
         bool parseResponse,
-        string? bundleId = null)
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
         var uriBuilder = new UriBuilder(_urlBase + path);
 
@@ -558,7 +778,7 @@ public class AppStoreServerAPIClient : IDisposable
             request.Content = new StringContent(json, Encoding.UTF8, "application/json");
         }
 
-        using var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
+        using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
         if (response.IsSuccessStatusCode)
         {
@@ -567,7 +787,7 @@ public class AppStoreServerAPIClient : IDisposable
                 return default!;
             }
 
-            var responseBodyStr = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var responseBodyStr = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             var responseBody = JsonSerializer.Deserialize<T>(responseBodyStr, JsonOptions);
 
             if (responseBody is null)
@@ -580,7 +800,7 @@ public class AppStoreServerAPIClient : IDisposable
 
         try
         {
-            var errorBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             var error = JsonSerializer.Deserialize<ErrorResponseBody>(errorBody, JsonOptions);
 
             if (error?.ErrorCode.HasValue == true)

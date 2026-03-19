@@ -243,7 +243,8 @@ public class SignedDataVerifierTests
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.missingX5CHeaderClaim");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signedPayload));
+            verifier.VerifyAndDecodeNotificationAsync(signedPayload,
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidChainLength, ex.Status);
     }
 
@@ -254,7 +255,8 @@ public class SignedDataVerifierTests
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.wrongBundleId");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signedPayload));
+            verifier.VerifyAndDecodeNotificationAsync(signedPayload,
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidAppIdentifier, ex.Status);
     }
 
@@ -265,7 +267,8 @@ public class SignedDataVerifierTests
         var signedTransaction = TestUtilities.ReadResourceAsString("mock_signed_data.transactionInfo");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeTransactionAsync(signedTransaction));
+            verifier.VerifyAndDecodeTransactionAsync(signedTransaction,
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidAppIdentifier, ex.Status);
     }
 
@@ -276,7 +279,8 @@ public class SignedDataVerifierTests
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.testNotification");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signedPayload));
+            verifier.VerifyAndDecodeNotificationAsync(signedPayload,
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidEnvironment, ex.Status);
     }
 
@@ -286,7 +290,8 @@ public class SignedDataVerifierTests
         var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox, "com.example", 1234);
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync("a.b.c.d"));
+            verifier.VerifyAndDecodeNotificationAsync("a.b.c.d",
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.VerificationFailure, ex.Status);
     }
 
@@ -296,7 +301,8 @@ public class SignedDataVerifierTests
         var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox, "com.example", 1234);
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync("a.b.c"));
+            verifier.VerifyAndDecodeNotificationAsync("a.b.c",
+                cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.VerificationFailure, ex.Status);
     }
 
@@ -306,7 +312,8 @@ public class SignedDataVerifierTests
         var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox, "com.example", 1234);
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.testNotification");
 
-        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signedPayload);
+        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signedPayload,
+            cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(NotificationTypeV2.Test, decoded.NotificationType);
     }
 
@@ -316,7 +323,8 @@ public class SignedDataVerifierTests
         var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox, "com.example", 1234);
         var signedRenewalInfo = TestUtilities.ReadResourceAsString("mock_signed_data.renewalInfo");
 
-        var decoded = await verifier.VerifyAndDecodeRenewalInfoAsync(signedRenewalInfo);
+        var decoded =
+            await verifier.VerifyAndDecodeRenewalInfoAsync(signedRenewalInfo, TestContext.Current.CancellationToken);
         Assert.Equal(Environment.Sandbox, decoded.Environment);
     }
 
@@ -326,7 +334,8 @@ public class SignedDataVerifierTests
         var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox, "com.example", 1234);
         var signedTransaction = TestUtilities.ReadResourceAsString("mock_signed_data.transactionInfo");
 
-        var decoded = await verifier.VerifyAndDecodeRenewalInfoAsync(signedTransaction);
+        var decoded =
+            await verifier.VerifyAndDecodeRenewalInfoAsync(signedTransaction, TestContext.Current.CancellationToken);
         Assert.Equal(Environment.Sandbox, decoded.Environment);
     }
 
@@ -336,7 +345,8 @@ public class SignedDataVerifierTests
         var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
         var signedPayload = TestUtilities.CreateSignedDataFromJson("models.decodedRealtimeRequest.json");
 
-        var decoded = await verifier.VerifyAndDecodeRealtimeRequestAsync(signedPayload);
+        var decoded = await verifier.VerifyAndDecodeRealtimeRequestAsync(signedPayload,
+            cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal("99371282", decoded.OriginalTransactionId);
         Assert.Equal(531412L, decoded.AppAppleId);
         Assert.Equal("com.example.product", decoded.ProductId);

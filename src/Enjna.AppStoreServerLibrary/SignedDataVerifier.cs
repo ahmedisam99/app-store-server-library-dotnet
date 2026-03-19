@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
@@ -64,13 +65,18 @@ public class SignedDataVerifier : IDisposable
     /// </summary>
     /// <param name="signedTransaction">The signedTransaction field.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded transaction info after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/jwstransaction"/>
-    public async Task<JWSTransactionDecodedPayload> VerifyAndDecodeTransactionAsync(string signedTransaction, string? bundleId = null)
+    public async Task<JWSTransactionDecodedPayload> VerifyAndDecodeTransactionAsync(
+        string signedTransaction,
+        string? bundleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var decoded = await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate)
-            .ConfigureAwait(false);
+        var decoded =
+            await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate, cancellationToken)
+                .ConfigureAwait(false);
 
         var effectiveBundleId = bundleId ?? _bundleId;
 
@@ -91,13 +97,17 @@ public class SignedDataVerifier : IDisposable
     /// Verifies and decodes a signedRenewalInfo obtained from the App Store Server API, an App Store Server Notification, or from a device.
     /// </summary>
     /// <param name="signedRenewalInfo">The signedRenewalInfo field.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded renewal info after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/jwsrenewalinfo"/>
-    public async Task<JWSRenewalInfoDecodedPayload> VerifyAndDecodeRenewalInfoAsync(string signedRenewalInfo)
+    public async Task<JWSRenewalInfoDecodedPayload> VerifyAndDecodeRenewalInfoAsync(
+        string signedRenewalInfo,
+        CancellationToken cancellationToken = default)
     {
-        var decoded = await VerifyJwtAsync<JWSRenewalInfoDecodedPayload>(signedRenewalInfo, ExtractSignedDate)
-            .ConfigureAwait(false);
+        var decoded =
+            await VerifyJwtAsync<JWSRenewalInfoDecodedPayload>(signedRenewalInfo, ExtractSignedDate, cancellationToken)
+                .ConfigureAwait(false);
 
         if (decoded.Environment != _environment)
         {
@@ -113,13 +123,19 @@ public class SignedDataVerifier : IDisposable
     /// <param name="signedPayload">The payload received by your server.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <param name="appAppleId">An optional app Apple ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded payload after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/signedpayload"/>
-    public async Task<ResponseBodyV2DecodedPayload> VerifyAndDecodeNotificationAsync(string signedPayload, string? bundleId = null, long? appAppleId = null)
+    public async Task<ResponseBodyV2DecodedPayload> VerifyAndDecodeNotificationAsync(
+        string signedPayload,
+        string? bundleId = null,
+        long? appAppleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var decoded = await VerifyJwtAsync<ResponseBodyV2DecodedPayload>(signedPayload, ExtractSignedDate)
-            .ConfigureAwait(false);
+        var decoded =
+            await VerifyJwtAsync<ResponseBodyV2DecodedPayload>(signedPayload, ExtractSignedDate, cancellationToken)
+                .ConfigureAwait(false);
 
         long? decodedAppAppleId = null;
         string? decodedBundleId = null;
@@ -158,7 +174,8 @@ public class SignedDataVerifier : IDisposable
         var effectiveAppAppleId = appAppleId ?? _appAppleId;
 
         if (effectiveBundleId != decodedBundleId ||
-            (_environment == Environment.Production && effectiveAppAppleId is not null && effectiveAppAppleId != decodedAppAppleId))
+            (_environment == Environment.Production && effectiveAppAppleId is not null &&
+             effectiveAppAppleId != decodedAppAppleId))
         {
             throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
         }
@@ -177,19 +194,26 @@ public class SignedDataVerifier : IDisposable
     /// <param name="signedAppTransaction">The signed AppTransaction.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <param name="appAppleId">An optional app Apple ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded AppTransaction after validation.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
     /// <seealso href="https://developer.apple.com/documentation/storekit/apptransaction"/>
-    public async Task<AppTransaction> VerifyAndDecodeAppTransactionAsync(string signedAppTransaction, string? bundleId = null, long? appAppleId = null)
+    public async Task<AppTransaction> VerifyAndDecodeAppTransactionAsync(
+        string signedAppTransaction,
+        string? bundleId = null,
+        long? appAppleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var decoded = await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate)
-            .ConfigureAwait(false);
+        var decoded =
+            await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate, cancellationToken)
+                .ConfigureAwait(false);
 
         var effectiveBundleId = bundleId ?? _bundleId;
         var effectiveAppAppleId = appAppleId ?? _appAppleId;
 
         if (decoded.BundleId != effectiveBundleId ||
-            (_environment == Environment.Production && effectiveAppAppleId is not null && decoded.AppAppleId != effectiveAppAppleId))
+            (_environment == Environment.Production && effectiveAppAppleId is not null &&
+             decoded.AppAppleId != effectiveAppAppleId))
         {
             throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
         }
@@ -207,17 +231,23 @@ public class SignedDataVerifier : IDisposable
     /// </summary>
     /// <param name="signedPayload">The payload received by your server.</param>
     /// <param name="appAppleId">An optional app Apple ID to use instead of the one provided in the constructor.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded payload after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/signedpayload"/>
-    public async Task<DecodedRealtimeRequestBody> VerifyAndDecodeRealtimeRequestAsync(string signedPayload, long? appAppleId = null)
+    public async Task<DecodedRealtimeRequestBody> VerifyAndDecodeRealtimeRequestAsync(
+        string signedPayload,
+        long? appAppleId = null,
+        CancellationToken cancellationToken = default)
     {
-        var decoded = await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate)
-            .ConfigureAwait(false);
+        var decoded =
+            await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate, cancellationToken)
+                .ConfigureAwait(false);
 
         var effectiveAppAppleId = appAppleId ?? _appAppleId;
 
-        if (_environment == Environment.Production && effectiveAppAppleId is not null && decoded.AppAppleId != effectiveAppAppleId)
+        if (_environment == Environment.Production && effectiveAppAppleId is not null &&
+            decoded.AppAppleId != effectiveAppAppleId)
         {
             throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
         }
@@ -230,7 +260,10 @@ public class SignedDataVerifier : IDisposable
         return decoded;
     }
 
-    private async Task<T> VerifyJwtAsync<T>(string jwt, Func<T, DateTimeOffset> signedDateExtractor) where T : class
+    private async Task<T> VerifyJwtAsync<T>(
+        string jwt,
+        Func<T, DateTimeOffset> signedDateExtractor,
+        CancellationToken cancellationToken = default) where T : class
     {
         try
         {
@@ -278,6 +311,7 @@ public class SignedDataVerifier : IDisposable
                 RequireSignedTokens = true
             };
 
+            cancellationToken.ThrowIfCancellationRequested();
             var result = await handler.ValidateTokenAsync(jwt, validationParams).ConfigureAwait(false);
             if (!result.IsValid)
             {
