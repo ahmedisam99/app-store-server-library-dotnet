@@ -10,14 +10,13 @@ namespace Enjna.AppStoreServerLibrary;
 /// A base class for creating JWS signatures for App Store requests.
 /// </summary>
 /// <seealso href="https://developer.apple.com/documentation/storekit/generating-jws-to-sign-app-store-requests"/>
-public abstract class JWSSignatureCreator : IDisposable
+public abstract class JWSSignatureCreator
 {
     private readonly string _audience;
-    private readonly ECDsa _ecdsa;
+    private readonly string _signingKey;
     private readonly string _keyId;
     private readonly string _issuerId;
     private readonly string _bundleId;
-    private bool _disposed;
 
     /// <summary>
     /// Creates a new <see cref="JWSSignatureCreator"/> instance.
@@ -30,8 +29,7 @@ public abstract class JWSSignatureCreator : IDisposable
     protected JWSSignatureCreator(string audience, string signingKey, string keyId, string issuerId, string bundleId)
     {
         _audience = audience;
-        _ecdsa = ECDsa.Create();
-        _ecdsa.ImportFromPem(signingKey);
+        _signingKey = signingKey;
         _keyId = keyId;
         _issuerId = issuerId;
         _bundleId = bundleId;
@@ -45,7 +43,10 @@ public abstract class JWSSignatureCreator : IDisposable
     /// <returns>The signed JWS.</returns>
     protected string CreateSignature(Dictionary<string, object> featureSpecificClaims, string? bundleId = null)
     {
-        var securityKey = new ECDsaSecurityKey(_ecdsa)
+        var ecdsa = ECDsa.Create();
+        ecdsa.ImportFromPem(_signingKey);
+
+        var securityKey = new ECDsaSecurityKey(ecdsa)
         {
             KeyId = _keyId
         };
@@ -70,12 +71,4 @@ public abstract class JWSSignatureCreator : IDisposable
         return handler.CreateToken(descriptor);
     }
 
-    /// <inheritdoc/>
-    public virtual void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-
-        _ecdsa.Dispose();
-    }
 }

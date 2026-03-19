@@ -8,14 +8,13 @@ namespace Enjna.AppStoreServerLibrary;
 /// A creator for promotional offer signatures using the original StoreKit API.
 /// </summary>
 /// <seealso href="https://developer.apple.com/documentation/storekit/in-app_purchase/original_api_for_in-app_purchase/subscriptions_and_offers/generating_a_signature_for_promotional_offers"/>
-public class PromotionalOfferSignatureCreator : IDisposable
+public class PromotionalOfferSignatureCreator
 {
     private const char Separator = '\u2063';
 
-    private readonly ECDsa _signingKey;
+    private readonly string _signingKey;
     private readonly string _keyId;
     private readonly string _bundleId;
-    private bool _disposed;
 
     /// <summary>
     /// Creates a new <see cref="PromotionalOfferSignatureCreator"/> instance.
@@ -25,8 +24,7 @@ public class PromotionalOfferSignatureCreator : IDisposable
     /// <param name="bundleId">Your app's bundle ID.</param>
     public PromotionalOfferSignatureCreator(string signingKey, string keyId, string bundleId)
     {
-        _signingKey = ECDsa.Create();
-        _signingKey.ImportFromPem(signingKey);
+        _signingKey = signingKey;
         _keyId = keyId;
         _bundleId = bundleId;
     }
@@ -59,19 +57,12 @@ public class PromotionalOfferSignatureCreator : IDisposable
             timestamp);
 
         var payloadBytes = Encoding.UTF8.GetBytes(payload);
-        var signature = _signingKey.SignData(payloadBytes, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
+
+        using var ecdsa = ECDsa.Create();
+        ecdsa.ImportFromPem(_signingKey);
+        var signature = ecdsa.SignData(payloadBytes, HashAlgorithmName.SHA256, DSASignatureFormat.Rfc3279DerSequence);
 
         return Convert.ToBase64String(signature);
     }
 
-    /// <summary>
-    /// Disposes the underlying ECDsa key.
-    /// </summary>
-    public void Dispose()
-    {
-        if (_disposed) return;
-        _disposed = true;
-
-        _signingKey.Dispose();
-    }
 }

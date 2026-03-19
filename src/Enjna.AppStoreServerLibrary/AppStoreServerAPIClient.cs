@@ -31,7 +31,7 @@ public class AppStoreServerAPIClient : IDisposable
     private const string UserAgent = "enjna-app-store-server-library/dotnet/1.0.0";
     private static readonly JsonSerializerOptions JsonOptions = new();
 
-    private readonly ECDsa _ecdsa;
+    private readonly string _signingKey;
     private readonly string _keyId;
     private readonly string _issuerId;
     private readonly string _bundleId;
@@ -58,8 +58,7 @@ public class AppStoreServerAPIClient : IDisposable
         Environment environment,
         HttpClient? httpClient = null)
     {
-        _ecdsa = ECDsa.Create();
-        _ecdsa.ImportFromPem(signingKey);
+        _signingKey = signingKey;
         _keyId = keyId;
         _issuerId = issuerId;
         _bundleId = bundleId;
@@ -827,7 +826,10 @@ public class AppStoreServerAPIClient : IDisposable
 
     private string CreateBearerToken(string? bundleId = null)
     {
-        var securityKey = new ECDsaSecurityKey(_ecdsa)
+        var ecdsa = ECDsa.Create();
+        ecdsa.ImportFromPem(_signingKey);
+
+        var securityKey = new ECDsaSecurityKey(ecdsa)
         {
             KeyId = _keyId
         };
@@ -853,8 +855,6 @@ public class AppStoreServerAPIClient : IDisposable
     {
         if (_disposed) return;
         _disposed = true;
-
-        _ecdsa.Dispose();
 
         if (_ownsHttpClient)
         {
