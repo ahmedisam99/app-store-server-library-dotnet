@@ -28,7 +28,7 @@ public class AppStoreServerAPIClient : IDisposable
     private const string ProductionUrl = "https://api.storekit.itunes.apple.com";
     private const string SandboxUrl = "https://api.storekit-sandbox.itunes.apple.com";
     private const string LocalTestingUrl = "https://local-testing-base-url";
-    private const string UserAgent = "enjna-app-store-server-library/dotnet/1.0.0";
+    private const string UserAgent = "enjna-app-store-server-library/dotnet/1.2.0";
     private static readonly JsonSerializerOptions JsonOptions = new();
 
     private readonly string _signingKey;
@@ -248,16 +248,16 @@ public class AppStoreServerAPIClient : IDisposable
     /// <summary>
     /// Get a list of notifications that the App Store server attempted to send to your server.
     /// </summary>
-    /// <param name="paginationToken">An optional token you use to get the next set of up to 20 notification history records. All responses that have more records available include a paginationToken. Omit this parameter the first time you call this endpoint.</param>
     /// <param name="request">The request body that includes the start and end dates, and optional query constraints.</param>
+    /// <param name="paginationToken">An optional token you use to get the next set of up to 20 notification history records. All responses that have more records available include a paginationToken. Omit this parameter the first time you call this endpoint.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains the App Store Server Notifications history for your app.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_notification_history"/>
     public async Task<NotificationHistoryResponse> GetNotificationHistoryAsync(
-        string? paginationToken,
         NotificationHistoryRequest request,
+        string? paginationToken = null,
         string? bundleId = null,
         CancellationToken cancellationToken = default)
     {
@@ -282,8 +282,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// Get a customer's in-app purchase transaction history for your app.
     /// </summary>
     /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
-    /// <param name="revision">A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Note: For requests that use the revision token, include the same query parameters from the initial request. Use the revision token from the previous <see cref="HistoryResponse"/>.</param>
-    /// <param name="request">The request body that includes query constraints.</param>
+    /// <param name="request">An optional request that includes query constraints.</param>
     /// <param name="version">The version of the Get Transaction History endpoint to use. V2 is recommended.</param>
     /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
@@ -292,55 +291,54 @@ public class AppStoreServerAPIClient : IDisposable
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history"/>
     public async Task<HistoryResponse> GetTransactionHistoryAsync(
         string transactionId,
-        string? revision,
-        TransactionHistoryRequest request,
+        TransactionHistoryRequest? request = null,
         GetTransactionHistoryVersion version = GetTransactionHistoryVersion.V2,
         string? bundleId = null,
         CancellationToken cancellationToken = default)
     {
         var queryParams = new Dictionary<string, string[]>();
 
-        if (revision is not null)
+        if (request?.Revision is not null)
         {
-            queryParams["revision"] = [revision];
+            queryParams["revision"] = [request.Revision];
         }
 
-        if (request.StartDate.HasValue)
+        if (request?.StartDate is not null)
         {
             queryParams["startDate"] = [request.StartDate.Value.ToString()];
         }
 
-        if (request.EndDate.HasValue)
+        if (request?.EndDate is not null)
         {
             queryParams["endDate"] = [request.EndDate.Value.ToString()];
         }
 
-        if (request.ProductIds is not null)
+        if (request?.ProductIds is not null)
         {
             queryParams["productId"] = request.ProductIds;
         }
 
-        if (request.ProductTypes is not null)
+        if (request?.ProductTypes is not null)
         {
             queryParams["productType"] = request.ProductTypes.Select(GetEnumMemberValue).ToArray();
         }
 
-        if (request.Sort.HasValue)
+        if (request?.Sort is not null)
         {
             queryParams["sort"] = [GetEnumMemberValue(request.Sort.Value)];
         }
 
-        if (request.SubscriptionGroupIdentifiers is not null)
+        if (request?.SubscriptionGroupIdentifiers is not null)
         {
             queryParams["subscriptionGroupIdentifier"] = request.SubscriptionGroupIdentifiers;
         }
 
-        if (request.InAppOwnershipType.HasValue)
+        if (request?.InAppOwnershipType is not null)
         {
             queryParams["inAppOwnershipType"] = [GetEnumMemberValue(request.InAppOwnershipType.Value)];
         }
 
-        if (request.Revoked.HasValue)
+        if (request?.Revoked is not null)
         {
             queryParams["revoked"] = [request.Revoked.Value.ToString().ToLowerInvariant()];
         }

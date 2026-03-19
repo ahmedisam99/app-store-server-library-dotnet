@@ -248,7 +248,7 @@ public class AppStoreServerAPIClientTests
             EndDate = 1698148900000
         };
 
-        var response = await client.GetNotificationHistoryAsync("test-pagination-token", request,
+        var response = await client.GetNotificationHistoryAsync(request, "test-pagination-token",
             cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
@@ -277,10 +277,11 @@ public class AppStoreServerAPIClientTests
             Sort = SortOrder.Ascending,
             SubscriptionGroupIdentifiers = ["sub_group_1"],
             InAppOwnershipType = InAppOwnershipType.Purchased,
-            Revoked = false
+            Revoked = false,
+            Revision = "revision_input"
         };
 
-        var response = await client.GetTransactionHistoryAsync("999999", "revision_input", request,
+        var response = await client.GetTransactionHistoryAsync("999999", request,
             cancellationToken: TestContext.Current.CancellationToken);
 
         AssertCommonHeaders(handler);
@@ -668,7 +669,7 @@ public class AppStoreServerAPIClientTests
 
         var request = new TransactionHistoryRequest();
 
-        var response = await client.GetTransactionHistoryAsync("999999", null, request,
+        var response = await client.GetTransactionHistoryAsync("999999", request,
             cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(Environment._Unmapped, response.Environment);
     }
@@ -683,7 +684,7 @@ public class AppStoreServerAPIClientTests
         var request = new TransactionHistoryRequest();
 
         await Assert.ThrowsAnyAsync<Exception>(() =>
-            client.GetTransactionHistoryAsync("999999", null, request,
+            client.GetTransactionHistoryAsync("999999", request,
                 cancellationToken: TestContext.Current.CancellationToken));
     }
 
@@ -846,7 +847,7 @@ public class AppStoreServerAPIClientTests
         var request = new TransactionHistoryRequest();
 
 #pragma warning disable CS0612 // Type or member is obsolete
-        await client.GetTransactionHistoryAsync("999999", null, request, GetTransactionHistoryVersion.V1,
+        await client.GetTransactionHistoryAsync("999999", request, version: GetTransactionHistoryVersion.V1,
             cancellationToken: TestContext.Current.CancellationToken);
 #pragma warning restore CS0612 // Type or member is obsolete
 
