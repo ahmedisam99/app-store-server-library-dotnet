@@ -7,8 +7,8 @@ namespace Enjna.AppStoreServerLibrary.Models.Enums;
 /// The server environment, either sandbox or production.
 /// </summary>
 /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/environment"/>
-[JsonConverter(typeof(JsonEnumMemberConverter<Environment>))]
-public enum Environment
+[JsonConverter(typeof(JsonEnumMemberConverter<AppStoreEnvironment>))]
+public enum AppStoreEnvironment
 {
     /// <summary>
     /// Represents a value not yet supported by this version of the library.

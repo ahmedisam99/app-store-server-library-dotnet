@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 
 namespace Enjna.AppStoreServerLibrary.Tests;
 
@@ -44,7 +44,7 @@ internal static class TestUtilities
         return ReadResourceAsString("certs.testSigningKey.p8");
     }
 
-    public static SignedDataVerifier GetSignedPayloadVerifier(Environment environment)
+    public static SignedDataVerifier GetSignedPayloadVerifier(AppStoreEnvironment environment)
     {
         var rootCertBytes = ReadResourceAsBytes("certs.testCA.der");
         return new SignedDataVerifier(
@@ -55,7 +55,7 @@ internal static class TestUtilities
 
     public static SignedDataVerifier GetDefaultSignedPayloadVerifier()
     {
-        return GetSignedPayloadVerifier(Environment.LocalTesting);
+        return GetSignedPayloadVerifier(AppStoreEnvironment.LocalTesting);
     }
 
     public static string CreateSignedDataFromJson(string resourcePath)

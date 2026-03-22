@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
 using Xunit;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
-
 namespace Enjna.AppStoreServerLibrary.Tests;
 
 public class AppStoreServerAPIClientTests
@@ -58,7 +56,7 @@ public class AppStoreServerAPIClientTests
         var handler = new TestHttpMessageHandler(statusCode, body);
         var httpClient = new HttpClient(handler);
         var signingKey = TestUtilities.GetSigningKey();
-        var client = new AppStoreServerAPIClient(signingKey, KeyId, IssuerId, Environment.LocalTesting, httpClient);
+        var client = new AppStoreServerAPIClient(signingKey, KeyId, IssuerId, AppStoreEnvironment.LocalTesting, httpClient);
         return (client, handler);
     }
 
@@ -169,7 +167,7 @@ public class AppStoreServerAPIClientTests
         var query = handler.CapturedRequest.RequestUri.Query;
         Assert.Contains("status=1", query);
         Assert.Contains("status=5", query);
-        Assert.Equal(Environment.LocalTesting, response.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, response.Environment);
         Assert.Equal("com.example", response.BundleId);
         Assert.Equal(5454545L, response.AppAppleId);
         Assert.NotNull(response.Data);
@@ -294,7 +292,7 @@ public class AppStoreServerAPIClientTests
         Assert.True(response.HasMore);
         Assert.Equal("com.example", response.BundleId);
         Assert.Equal(323232L, response.AppAppleId);
-        Assert.Equal(Environment.LocalTesting, response.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, response.Environment);
         Assert.NotNull(response.SignedTransactions);
         Assert.Equal(2, response.SignedTransactions.Length);
     }
@@ -670,7 +668,7 @@ public class AppStoreServerAPIClientTests
 
         var response = await client.GetTransactionHistoryAsync("999999", BundleId, request,
             cancellationToken: TestContext.Current.CancellationToken);
-        Assert.Equal(Environment._Unmapped, response.Environment);
+        Assert.Equal(AppStoreEnvironment._Unmapped, response.Environment);
     }
 
     // 27. Malformed appAppleId in response throws
@@ -694,7 +692,7 @@ public class AppStoreServerAPIClientTests
         var signingKey = TestUtilities.GetSigningKey();
 
         Assert.Throws<ArgumentException>(() =>
-            new AppStoreServerAPIClient(signingKey, KeyId, IssuerId, Environment.Xcode));
+            new AppStoreServerAPIClient(signingKey, KeyId, IssuerId, AppStoreEnvironment.Xcode));
     }
 
     // 29. SetAppAccountToken: InvalidAppAccountTokenUuid (4000183)

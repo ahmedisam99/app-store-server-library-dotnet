@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
 using Enjna.AppStoreServerLibrary.Models.Enums;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 using Type = Enjna.AppStoreServerLibrary.Models.Enums.Type;
 
 namespace Enjna.AppStoreServerLibrary.Models;
@@ -179,7 +178,7 @@ public sealed class JWSTransactionDecodedPayload : DecodedSignedData
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/environment"/>
     [JsonPropertyName("environment")]
-    public Environment? Environment { get; set; }
+    public AppStoreEnvironment? Environment { get; set; }
 
     /// <summary>
     /// The three-letter code that represents the country or region associated with the App Store storefront for the purchase.

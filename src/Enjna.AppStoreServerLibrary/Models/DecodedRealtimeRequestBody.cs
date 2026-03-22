@@ -1,6 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -50,7 +50,7 @@ public sealed class DecodedRealtimeRequestBody : DecodedSignedData
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/environment"/>
     [JsonPropertyName("environment")]
-    public Environment Environment { get; set; }
+    public AppStoreEnvironment Environment { get; set; }
 
     /// <summary>
     /// The UNIX time, in milliseconds, that the App Store signed the JSON Web Signature data.

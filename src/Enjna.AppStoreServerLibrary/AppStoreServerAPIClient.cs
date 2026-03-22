@@ -15,7 +15,6 @@ using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary;
 
@@ -52,7 +51,7 @@ public class AppStoreServerAPIClient : IDisposable
         string signingKey,
         string keyId,
         string issuerId,
-        Environment environment,
+        AppStoreEnvironment environment,
         HttpClient? httpClient = null)
     {
         _signingKey = signingKey;
@@ -66,10 +65,10 @@ public class AppStoreServerAPIClient : IDisposable
 
         _urlBase = environment switch
         {
-            Environment.Production => ProductionUrl,
-            Environment.Sandbox => SandboxUrl,
-            Environment.LocalTesting => LocalTestingUrl,
-            Environment.Xcode => throw new ArgumentException("Xcode is not a supported for an AppStoreServerAPIClient"),
+            AppStoreEnvironment.Production => ProductionUrl,
+            AppStoreEnvironment.Sandbox => SandboxUrl,
+            AppStoreEnvironment.LocalTesting => LocalTestingUrl,
+            AppStoreEnvironment.Xcode => throw new ArgumentException("Xcode is not a supported for an AppStoreServerAPIClient"),
             _ => throw new ArgumentException($"Unsupported environment: {environment}")
         };
     }

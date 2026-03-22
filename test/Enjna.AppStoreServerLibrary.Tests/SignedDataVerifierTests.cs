@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
 using Xunit;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
-
 namespace Enjna.AppStoreServerLibrary.Tests;
 
 public class SignedDataVerifierTests
@@ -59,7 +57,7 @@ public class SignedDataVerifierTests
         return new SignedDataVerifier(
             [Convert.FromBase64String(rootCertBase64)],
             enableOnlineChecks,
-            Environment.Production);
+            AppStoreEnvironment.Production);
     }
 
     #endregion
@@ -108,7 +106,7 @@ public class SignedDataVerifierTests
     [Fact]
     public void ChainVerification_EmptyRootCertArray_ThrowsVerificationFailure()
     {
-        var verifier = new SignedDataVerifier([], false, Environment.Production);
+        var verifier = new SignedDataVerifier([], false, AppStoreEnvironment.Production);
         var leaf = CertFromBase64(LEAF_CERT_BASE64);
         var intermediate = CertFromBase64(INTERMEDIATE_CA_BASE64);
 
@@ -166,7 +164,7 @@ public class SignedDataVerifierTests
             var unused = new SignedDataVerifier(
                 [new byte[] { 0x61, 0x62, 0x63 }],
                 enableOnlineChecks: false,
-                Environment.Production);
+                AppStoreEnvironment.Production);
         });
     }
 
@@ -233,7 +231,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_MissingX5CHeader_ThrowsInvalidChainLength()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Production);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Production);
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.missingX5CHeaderClaim");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
@@ -245,7 +243,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_WrongBundleId_ThrowsInvalidBundleId()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.wrongBundleId");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
@@ -257,7 +255,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeTransactionAsync_WrongBundleId_ThrowsInvalidBundleId()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
         var signedTransaction = TestUtilities.ReadResourceAsString("mock_signed_data.transactionInfo");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
@@ -269,7 +267,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_WrongAppAppleId_ThrowsInvalidAppAppleId()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Production);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Production);
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.testNotification");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
@@ -281,7 +279,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_WrongEnvironment_ThrowsInvalidEnvironment()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Production);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Production);
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.testNotification");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
@@ -293,7 +291,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_MalformedJwtFourParts_ThrowsVerificationFailure()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
             verifier.VerifyAndDecodeNotificationAsync("a.b.c.d",
@@ -304,7 +302,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_MalformedJwtBadPayload_ThrowsVerificationFailure()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
             verifier.VerifyAndDecodeNotificationAsync("a.b.c",
@@ -315,7 +313,7 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeNotificationAsync_ValidTestNotification_ReturnsDecodedPayload()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
         var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.testNotification");
 
         var decoded = await verifier.VerifyAndDecodeNotificationAsync(signedPayload, "com.example", 1234,
@@ -326,23 +324,23 @@ public class SignedDataVerifierTests
     [Fact]
     public async Task VerifyAndDecodeRenewalInfoAsync_ValidRenewalInfo_ReturnsDecodedPayload()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
         var signedRenewalInfo = TestUtilities.ReadResourceAsString("mock_signed_data.renewalInfo");
 
         var decoded =
             await verifier.VerifyAndDecodeRenewalInfoAsync(signedRenewalInfo, TestContext.Current.CancellationToken);
-        Assert.Equal(Environment.Sandbox, decoded.Environment);
+        Assert.Equal(AppStoreEnvironment.Sandbox, decoded.Environment);
     }
 
     [Fact]
     public async Task VerifyAndDecodeRenewalInfoAsync_TransactionInfoAsRenewal_ReturnsDecodedPayload()
     {
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.Sandbox);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
         var signedTransaction = TestUtilities.ReadResourceAsString("mock_signed_data.transactionInfo");
 
         var decoded =
             await verifier.VerifyAndDecodeRenewalInfoAsync(signedTransaction, TestContext.Current.CancellationToken);
-        Assert.Equal(Environment.Sandbox, decoded.Environment);
+        Assert.Equal(AppStoreEnvironment.Sandbox, decoded.Environment);
     }
 
     [Fact]
@@ -358,7 +356,7 @@ public class SignedDataVerifierTests
         Assert.Equal("com.example.product", decoded.ProductId);
         Assert.Equal("en-US", decoded.UserLocale);
         Assert.Equal("3db5c98d-8acf-4e29-831e-8e1f82f9f6e9", decoded.RequestIdentifier);
-        Assert.Equal(Environment.LocalTesting, decoded.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Environment);
         Assert.Equal(1698148900000L, decoded.SignedDate);
     }
 

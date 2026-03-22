@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
 using Xunit;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 using Type = Enjna.AppStoreServerLibrary.Models.Enums.Type;
 
 namespace Enjna.AppStoreServerLibrary.Tests;
@@ -20,7 +19,7 @@ public class ModelDeserializationTests
             await verifier.VerifyAndDecodeAppTransactionAsync(signed,
                 cancellationToken: TestContext.Current.CancellationToken);
 
-        Assert.Equal(Environment.LocalTesting, decoded.ReceiptType);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.ReceiptType);
         Assert.Equal(531412L, decoded.AppAppleId);
         Assert.Equal("com.example", decoded.BundleId);
         Assert.Equal("1.2.3", decoded.ApplicationVersion);
@@ -54,7 +53,7 @@ public class ModelDeserializationTests
         Assert.Equal(OfferType.PromotionalOffer, decoded.OfferType);
         Assert.Equal("abc.123", decoded.OfferIdentifier);
         Assert.Equal(1698148800000L, decoded.SignedDate);
-        Assert.Equal(Environment.LocalTesting, decoded.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Environment);
         Assert.Equal(1698148800000L, decoded.RecentSubscriptionStartDate);
         Assert.Equal(1698148850000L, decoded.RenewalDate);
         Assert.Equal(9990L, decoded.RenewalPrice);
@@ -95,7 +94,7 @@ public class ModelDeserializationTests
         Assert.True(decoded.IsUpgraded);
         Assert.Equal(OfferType.IntroductoryOffer, decoded.OfferType);
         Assert.Equal("abc.123", decoded.OfferIdentifier);
-        Assert.Equal(Environment.LocalTesting, decoded.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Environment);
         Assert.Equal(TransactionReason.Purchase, decoded.TransactionReason);
         Assert.Equal("USA", decoded.Storefront);
         Assert.Equal("143441", decoded.StorefrontId);
@@ -138,7 +137,7 @@ public class ModelDeserializationTests
         Assert.Equal("USA", decoded.Storefront);
         Assert.Equal("143441", decoded.StorefrontId);
         Assert.Equal(TransactionReason.Purchase, decoded.TransactionReason);
-        Assert.Equal(Environment.LocalTesting, decoded.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Environment);
         Assert.Equal(10990L, decoded.Price);
         Assert.Equal("USD", decoded.Currency);
         Assert.Equal(OfferDiscountType.PayAsYouGo, decoded.OfferDiscountType);
@@ -166,7 +165,7 @@ public class ModelDeserializationTests
         Assert.NotNull(decoded.Data);
         Assert.Null(decoded.Summary);
         Assert.Null(decoded.ExternalPurchaseToken);
-        Assert.Equal(Environment.LocalTesting, decoded.Data.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Data.Environment);
         Assert.Equal(41234L, decoded.Data.AppAppleId);
         Assert.Equal("com.example", decoded.Data.BundleId);
         Assert.Equal("1.2.3", decoded.Data.BundleVersion);
@@ -194,7 +193,7 @@ public class ModelDeserializationTests
         Assert.NotNull(decoded.Data);
         Assert.Null(decoded.Summary);
         Assert.Null(decoded.ExternalPurchaseToken);
-        Assert.Equal(Environment.LocalTesting, decoded.Data.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Data.Environment);
         Assert.Equal(41234L, decoded.Data.AppAppleId);
         Assert.Equal("com.example", decoded.Data.BundleId);
         Assert.Equal("1.2.3", decoded.Data.BundleVersion);
@@ -218,7 +217,7 @@ public class ModelDeserializationTests
         Assert.Equal(Subtype.Summary, decoded.Subtype);
         Assert.Null(decoded.Data);
         Assert.NotNull(decoded.Summary);
-        Assert.Equal(Environment.LocalTesting, decoded.Summary.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Summary.Environment);
         Assert.Equal(41234L, decoded.Summary.AppAppleId);
         Assert.Equal("com.example", decoded.Summary.BundleId);
         Assert.Equal("com.example.product", decoded.Summary.ProductId);
@@ -235,7 +234,7 @@ public class ModelDeserializationTests
         // The token's externalPurchaseId does NOT start with "SANDBOX", so derived env = Production.
         // bundleId/appAppleId match → passes that check, then environment mismatch → InvalidEnvironment.
         // This proves the correct values are extracted from externalPurchaseToken (not from data).
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.LocalTesting);
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenNotification.json");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
@@ -267,7 +266,7 @@ public class ModelDeserializationTests
     {
         // Same approach: externalPurchaseId starts with "SANDBOX_", so derived env = Sandbox.
         // Verifier env = LocalTesting → environment mismatch → InvalidEnvironment.
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.LocalTesting);
         var signed =
             TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenSandboxNotification.json");
 
@@ -314,7 +313,7 @@ public class ModelDeserializationTests
         Assert.Null(decoded.Summary);
         Assert.Null(decoded.ExternalPurchaseToken);
         Assert.NotNull(decoded.AppData);
-        Assert.Equal(Environment.LocalTesting, decoded.AppData.Environment);
+        Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.AppData.Environment);
         Assert.Equal(41234L, decoded.AppData.AppAppleId);
         Assert.Equal("com.example", decoded.AppData.BundleId);
         Assert.Equal("signed_app_transaction_info_value", decoded.AppData.SignedAppTransactionInfo);
@@ -339,7 +338,7 @@ public class ModelDeserializationTests
         Assert.NotNull(appData);
         Assert.Equal(987654321L, appData.AppAppleId);
         Assert.Equal("com.example", appData.BundleId);
-        Assert.Equal(Environment.Sandbox, appData.Environment);
+        Assert.Equal(AppStoreEnvironment.Sandbox, appData.Environment);
         Assert.Equal("signed-app-transaction-info", appData.SignedAppTransactionInfo);
     }
 

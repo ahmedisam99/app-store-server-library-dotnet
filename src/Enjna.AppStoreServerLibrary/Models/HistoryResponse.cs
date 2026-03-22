@@ -42,7 +42,7 @@ public sealed class HistoryResponse
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/environment"/>
     [JsonPropertyName("environment")]
-    public Environment? Environment { get; set; }
+    public AppStoreEnvironment? Environment { get; set; }
 
     /// <summary>
     /// An array of in-app purchase transactions for the customer, signed by Apple, in JSON Web Signature format.

@@ -1,8 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
 using Enjna.AppStoreServerLibrary.Models.Enums;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
-
 namespace Enjna.AppStoreServerLibrary.Models;
 
 /// <summary>
@@ -16,7 +14,7 @@ public sealed class AppTransaction
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/storekit/apptransaction/3963901-environment"/>
     [JsonPropertyName("receiptType")]
-    public Environment? ReceiptType { get; set; }
+    public AppStoreEnvironment? ReceiptType { get; set; }
 
     /// <summary>
     /// The unique identifier the App Store uses to identify the app.

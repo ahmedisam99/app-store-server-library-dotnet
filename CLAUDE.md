@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-A community-maintained .NET 8.0 port of Apple's [App Store Server Library](https://github.com/apple/app-store-server-library-node). The reference Node.js implementation is vendored as a git submodule at `vendor/app-store-server-library-node/` for parity checks.
+A community-maintained .NET 8.0 App Store Server Library. Apple's [Node.js App Store Server Library](https://github.com/apple/app-store-server-library-node) is vendored as a git submodule at `vendor/app-store-server-library-node/` and used as a reference to ensure this library does not miss any functionality, types, models, API calls, or test cases.
 
 ## Build & Test Commands
 
@@ -53,6 +53,6 @@ dotnet run --project test/Enjna.AppStoreServerLibrary.Tests -- --filter-method "
 - **`base.`** prefix when calling inherited methods from subclasses.
 - XML doc comments on all public members (build generates documentation file).
 
-## Parity with Node.js Reference
+## Completeness Check Against Node.js Reference
 
-Use the `dotnet-parity-checker` agent (`.claude/agents/dotnet-parity-checker.md`) to verify the .NET implementation matches the vendored Node.js reference.
+Use the `dotnet-parity-checker` agent (`.claude/agents/dotnet-parity-checker.md`) to verify this library is not missing any functionality, types, models, API calls, or test cases that are covered in Apple's Node.js reference.

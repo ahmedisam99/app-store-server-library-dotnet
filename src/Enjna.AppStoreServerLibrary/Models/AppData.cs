@@ -28,7 +28,7 @@ public sealed class AppData
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/environment"/>
     [JsonPropertyName("environment")]
-    public Environment? Environment { get; set; }
+    public AppStoreEnvironment? Environment { get; set; }
 
     /// <summary>
     /// App transaction information signed by the App Store, in JSON Web Signature (JWS) format.

@@ -1,8 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
 using Enjna.AppStoreServerLibrary.Models.Enums;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
-
 namespace Enjna.AppStoreServerLibrary.Models;
 
 /// <summary>
@@ -95,7 +93,7 @@ public sealed class JWSRenewalInfoDecodedPayload : DecodedSignedData
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/environment"/>
     [JsonPropertyName("environment")]
-    public Environment? Environment { get; set; }
+    public AppStoreEnvironment? Environment { get; set; }
 
     /// <summary>
     /// The earliest start date of a subscription in a series of auto-renewable subscription purchases that ignores all lapses of paid service shorter than 60 days.

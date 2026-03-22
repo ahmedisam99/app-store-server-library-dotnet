@@ -46,7 +46,7 @@ var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
 var keyId = "ABCDEFGHIJ";
 var bundleId = "com.example";
 var privateKey = File.ReadAllText("/path/to/key.p8");
-var environment = Environment.Sandbox;
+var environment = AppStoreEnvironment.Sandbox;
 
 var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, environment);
 
@@ -60,7 +60,7 @@ Console.WriteLine(response.TestNotificationToken);
 var bundleId = "com.example";
 var appleRootCAs = new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") };
 var enableOnlineChecks = true;
-var environment = Environment.Sandbox;
+var environment = AppStoreEnvironment.Sandbox;
 long? appAppleId = null; // Optional. In Production, pass this if you want to validate it.
 
 var verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment);
@@ -77,7 +77,7 @@ var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
 var keyId = "ABCDEFGHIJ";
 var bundleId = "com.example";
 var privateKey = File.ReadAllText("/path/to/key.p8");
-var environment = Environment.Sandbox;
+var environment = AppStoreEnvironment.Sandbox;
 
 var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, environment);
 
@@ -149,7 +149,7 @@ builder.Services.AddSingleton(sp =>
         privateKey,
         keyId: "ABCDEFGHIJ",
         issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
-        environment: Environment.Production,
+        environment: AppStoreEnvironment.Production,
         httpClient: httpClient
     );
 });
@@ -168,7 +168,7 @@ builder.Services.AddHttpClient<AppStoreServerAPIClient>()
             privateKey,
             keyId: "ABCDEFGHIJ",
             issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
-            environment: Environment.Production,
+            environment: AppStoreEnvironment.Production,
             httpClient: httpClient
         );
     });
@@ -184,7 +184,7 @@ The remaining classes don't use `HttpClient` and can be registered directly as s
 builder.Services.AddSingleton(new SignedDataVerifier(
     appleRootCertificates: new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") },
     enableOnlineChecks: true,
-    environment: Environment.Production
+    environment: AppStoreEnvironment.Production
 ));
 
 builder.Services.AddSingleton<ReceiptUtility>();

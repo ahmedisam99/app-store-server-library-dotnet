@@ -14,7 +14,7 @@ public sealed class Data
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/environment"/>
     [JsonPropertyName("environment")]
-    public Environment? Environment { get; set; }
+    public AppStoreEnvironment? Environment { get; set; }
 
     /// <summary>
     /// The unique identifier of an app in the App Store.

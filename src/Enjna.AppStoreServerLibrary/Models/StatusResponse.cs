@@ -14,7 +14,7 @@ public sealed class StatusResponse
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/environment"/>
     [JsonPropertyName("environment")]
-    public Environment? Environment { get; set; }
+    public AppStoreEnvironment? Environment { get; set; }
 
     /// <summary>
     /// The bundle identifier of an app.

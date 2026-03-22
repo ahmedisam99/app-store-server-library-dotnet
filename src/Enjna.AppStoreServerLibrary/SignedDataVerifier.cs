@@ -9,7 +9,6 @@ using Enjna.AppStoreServerLibrary.Models;
 using Enjna.AppStoreServerLibrary.Models.Enums;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Environment = Enjna.AppStoreServerLibrary.Models.Enums.Environment;
 
 namespace Enjna.AppStoreServerLibrary;
 
@@ -28,7 +27,7 @@ public class SignedDataVerifier : IDisposable
 
     private readonly X509Certificate2[] _rootCertificates;
     private readonly bool _enableOnlineChecks;
-    private readonly Environment _environment;
+    private readonly AppStoreEnvironment _environment;
     private bool _disposed;
 
     internal readonly object CacheLock = new();
@@ -45,7 +44,7 @@ public class SignedDataVerifier : IDisposable
     public SignedDataVerifier(
         byte[][] appleRootCertificates,
         bool enableOnlineChecks,
-        Environment environment)
+        AppStoreEnvironment environment)
     {
         _rootCertificates = appleRootCertificates.Select(cert => new X509Certificate2(cert)).ToArray();
         _enableOnlineChecks = enableOnlineChecks;
@@ -129,7 +128,7 @@ public class SignedDataVerifier : IDisposable
 
         long? decodedAppAppleId = null;
         string? decodedBundleId = null;
-        Environment? environment = null;
+        AppStoreEnvironment? environment = null;
 
         if (decoded.Data is not null)
         {
@@ -150,8 +149,8 @@ public class SignedDataVerifier : IDisposable
             environment =
                 decoded.ExternalPurchaseToken.ExternalPurchaseId is not null &&
                 decoded.ExternalPurchaseToken.ExternalPurchaseId.StartsWith("SANDBOX")
-                    ? Environment.Sandbox
-                    : Environment.Production;
+                    ? AppStoreEnvironment.Sandbox
+                    : AppStoreEnvironment.Production;
         }
         else if (decoded.AppData is not null)
         {
@@ -165,7 +164,7 @@ public class SignedDataVerifier : IDisposable
             throw new VerificationException(VerificationStatus.InvalidBundleId);
         }
 
-        if (_environment == Environment.Production && appAppleId is not null && appAppleId != decodedAppAppleId)
+        if (_environment == AppStoreEnvironment.Production && appAppleId is not null && appAppleId != decodedAppAppleId)
         {
             throw new VerificationException(VerificationStatus.InvalidAppAppleId);
         }
@@ -203,7 +202,7 @@ public class SignedDataVerifier : IDisposable
             throw new VerificationException(VerificationStatus.InvalidBundleId);
         }
 
-        if (_environment == Environment.Production && appAppleId is not null && decoded.AppAppleId != appAppleId)
+        if (_environment == AppStoreEnvironment.Production && appAppleId is not null && decoded.AppAppleId != appAppleId)
         {
             throw new VerificationException(VerificationStatus.InvalidAppAppleId);
         }
@@ -234,7 +233,7 @@ public class SignedDataVerifier : IDisposable
             await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate, cancellationToken)
                 .ConfigureAwait(false);
 
-        if (_environment == Environment.Production && appAppleId is not null && decoded.AppAppleId != appAppleId)
+        if (_environment == AppStoreEnvironment.Production && appAppleId is not null && decoded.AppAppleId != appAppleId)
         {
             throw new VerificationException(VerificationStatus.InvalidAppAppleId);
         }
@@ -265,7 +264,7 @@ public class SignedDataVerifier : IDisposable
                 throw new VerificationException(VerificationStatus.Failure);
             }
 
-            if (_environment is Environment.Xcode or Environment.LocalTesting)
+            if (_environment is AppStoreEnvironment.Xcode or AppStoreEnvironment.LocalTesting)
             {
                 return payload;
             }
