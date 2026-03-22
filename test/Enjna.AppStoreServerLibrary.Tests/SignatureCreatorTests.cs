@@ -78,6 +78,24 @@ public class SignatureCreatorTests
     }
 
     [Fact]
+    public void PromotionalOfferV2_SameInstance_UsesPerCallBundleId()
+    {
+        var creator = new PromotionalOfferV2SignatureCreator(_signingKey, KeyId, IssuerId);
+
+        var firstSignature = creator.CreateSignature("productId", "offerIdentifier", "com.example.one");
+        var secondSignature = creator.CreateSignature("productId", "offerIdentifier", "com.example.two");
+
+        var (_, firstPayload) = DecodeJwtParts(firstSignature);
+        var (_, secondPayload) = DecodeJwtParts(secondSignature);
+
+        Assert.Equal("com.example.one", firstPayload.RootElement.GetProperty("bid").GetString());
+        Assert.Equal("com.example.two", secondPayload.RootElement.GetProperty("bid").GetString());
+
+        firstPayload.Dispose();
+        secondPayload.Dispose();
+    }
+
+    [Fact]
     public void IntroductoryOfferEligibility_CreatesValidSignature()
     {
         var creator = new IntroductoryOfferEligibilitySignatureCreator(_signingKey, KeyId, IssuerId);
@@ -131,6 +149,24 @@ public class SignatureCreatorTests
         header.Dispose();
         payload.Dispose();
         requestDoc.Dispose();
+    }
+
+    [Fact]
+    public void AdvancedCommerceInApp_SameInstance_UsesPerCallBundleId()
+    {
+        var creator = new AdvancedCommerceInAppSignatureCreator(_signingKey, KeyId, IssuerId);
+
+        var firstSignature = creator.CreateSignature(new { key = "value" }, "com.example.one");
+        var secondSignature = creator.CreateSignature(new { key = "value" }, "com.example.two");
+
+        var (_, firstPayload) = DecodeJwtParts(firstSignature);
+        var (_, secondPayload) = DecodeJwtParts(secondSignature);
+
+        Assert.Equal("com.example.one", firstPayload.RootElement.GetProperty("bid").GetString());
+        Assert.Equal("com.example.two", secondPayload.RootElement.GetProperty("bid").GetString());
+
+        firstPayload.Dispose();
+        secondPayload.Dispose();
     }
 
     [Fact]

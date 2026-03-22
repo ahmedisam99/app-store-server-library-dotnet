@@ -88,6 +88,15 @@ public class AppStoreServerAPIClientTests
         Assert.Equal(IssuerId, payload.RootElement.GetProperty("iss").GetString());
     }
 
+    private static string GetBearerBundleId(TestHttpMessageHandler handler)
+    {
+        var auth = handler.CapturedRequest!.Headers.Authorization!;
+        var parts = auth.Parameter!.Split('.');
+        var payloadJson = Base64UrlDecode(parts[1]);
+        using var payload = JsonDocument.Parse(payloadJson);
+        return payload.RootElement.GetProperty("bid").GetString()!;
+    }
+
     private static byte[] Base64UrlDecode(string input)
     {
         var base64 = input.Replace('-', '+').Replace('_', '/');
@@ -873,5 +882,19 @@ public class AppStoreServerAPIClientTests
 
         Assert.Equal("/inApps/v2/refund/lookup/555555", handler.CapturedRequest!.RequestUri!.AbsolutePath);
         Assert.Equal("", handler.CapturedRequest.RequestUri.Query);
+    }
+
+    [Fact]
+    public async Task RequestTestNotification_SameClient_UsesPerCallBundleId()
+    {
+        var (client, handler) = GetClientWithBody("models.requestTestNotificationResponse.json", HttpStatusCode.OK);
+
+        await client.RequestTestNotificationAsync("com.example.one",
+            cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal("com.example.one", GetBearerBundleId(handler));
+
+        await client.RequestTestNotificationAsync("com.example.two",
+            cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal("com.example.two", GetBearerBundleId(handler));
     }
 }

@@ -343,6 +343,16 @@ public class ModelDeserializationTests
     }
 
     [Fact]
+    public void AppStoreEnvironment_RoundTripsJsonEnumMemberValues()
+    {
+        var json = JsonSerializer.Serialize(AppStoreEnvironment.Sandbox);
+        var decoded = JsonSerializer.Deserialize<AppStoreEnvironment>(json);
+
+        Assert.Equal("\"Sandbox\"", json);
+        Assert.Equal(AppStoreEnvironment.Sandbox, decoded);
+    }
+
+    [Fact]
     public void RealtimeResponseBody_Message_SerializesCorrectly()
     {
         var body = new RealtimeResponseBody

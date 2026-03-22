@@ -265,6 +265,18 @@ public class SignedDataVerifierTests
     }
 
     [Fact]
+    public async Task VerifyAndDecodeTransactionAsync_OmittedBundleId_SkipsAppIdentifierValidation()
+    {
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
+        var signedTransaction = TestUtilities.ReadResourceAsString("mock_signed_data.transactionInfo");
+
+        var decoded = await verifier.VerifyAndDecodeTransactionAsync(signedTransaction,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("com.example", decoded.BundleId);
+    }
+
+    [Fact]
     public async Task VerifyAndDecodeNotificationAsync_WrongAppAppleId_ThrowsInvalidAppAppleId()
     {
         var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Production);
@@ -274,6 +286,30 @@ public class SignedDataVerifierTests
             verifier.VerifyAndDecodeNotificationAsync(signedPayload, "com.example", 9999,
                 cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidAppAppleId, ex.Status);
+    }
+
+    [Fact]
+    public async Task VerifyAndDecodeNotificationAsync_OmittedIdentifiers_SkipsAppIdentifierValidation()
+    {
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
+        var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.testNotification");
+
+        var decoded = await verifier.VerifyAndDecodeNotificationAsync(signedPayload,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(NotificationTypeV2.Test, decoded.NotificationType);
+    }
+
+    [Fact]
+    public async Task VerifyAndDecodeNotificationAsync_OnlyBundleId_ValidatesBundleIdIndependently()
+    {
+        var verifier = TestUtilities.GetSignedPayloadVerifier(AppStoreEnvironment.Sandbox);
+        var signedPayload = TestUtilities.ReadResourceAsString("mock_signed_data.wrongBundleId");
+
+        var ex = await Assert.ThrowsAsync<VerificationException>(() =>
+            verifier.VerifyAndDecodeNotificationAsync(signedPayload, "com.example",
+                cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(VerificationStatus.InvalidBundleId, ex.Status);
     }
 
     [Fact]
@@ -358,6 +394,31 @@ public class SignedDataVerifierTests
         Assert.Equal("3db5c98d-8acf-4e29-831e-8e1f82f9f6e9", decoded.RequestIdentifier);
         Assert.Equal(AppStoreEnvironment.LocalTesting, decoded.Environment);
         Assert.Equal(1698148900000L, decoded.SignedDate);
+    }
+
+    [Fact]
+    public async Task VerifyAndDecodeRealtimeRequestAsync_OmittedAppAppleId_SkipsAppIdentifierValidation()
+    {
+        var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
+        var signedPayload = TestUtilities.CreateSignedDataFromJson("models.decodedRealtimeRequest.json");
+
+        var decoded = await verifier.VerifyAndDecodeRealtimeRequestAsync(signedPayload,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(531412L, decoded.AppAppleId);
+    }
+
+    [Fact]
+    public async Task VerifyAndDecodeAppTransactionAsync_OmittedIdentifiers_SkipsAppIdentifierValidation()
+    {
+        var verifier = TestUtilities.GetDefaultSignedPayloadVerifier();
+        var signedAppTransaction = TestUtilities.CreateSignedDataFromJson("models.appTransaction.json");
+
+        var decoded = await verifier.VerifyAndDecodeAppTransactionAsync(signedAppTransaction,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("com.example", decoded.BundleId);
+        Assert.Equal(531412L, decoded.AppAppleId);
     }
 
     #endregion
