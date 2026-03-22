@@ -64,7 +64,7 @@ public class AppStoreServerAPIClientTests
     {
         var request = handler.CapturedRequest!;
 
-        Assert.Contains("enjna-app-store-server-library/dotnet/1.2.0", request.Headers.GetValues("User-Agent"));
+        Assert.Contains("enjna-app-store-server-library/dotnet/2.0.0", request.Headers.GetValues("User-Agent"));
         Assert.Contains("application/json", request.Headers.Accept.ToString());
 
         var auth = request.Headers.Authorization;
