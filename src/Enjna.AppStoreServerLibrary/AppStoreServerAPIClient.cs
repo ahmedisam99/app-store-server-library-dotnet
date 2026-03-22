@@ -27,7 +27,7 @@ public class AppStoreServerAPIClient : IDisposable
     private const string ProductionUrl = "https://api.storekit.itunes.apple.com";
     private const string SandboxUrl = "https://api.storekit-sandbox.itunes.apple.com";
     private const string LocalTestingUrl = "https://local-testing-base-url";
-    private const string UserAgent = "enjna-app-store-server-library/dotnet/1.2.0";
+    private const string UserAgent = "enjna-app-store-server-library/dotnet/2.0.0";
     private static readonly JsonSerializerOptions JsonOptions = new();
 
     private readonly string _signingKey;
