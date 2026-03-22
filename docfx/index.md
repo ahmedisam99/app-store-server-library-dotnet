@@ -4,52 +4,132 @@ _layout: landing
 
 # App Store Server Library for .NET
 
-[API Reference](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.html)
-
 A .NET library for the [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi), [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications), and [Retention Messaging API](https://developer.apple.com/documentation/retentionmessaging).
 
+> This is a community-maintained library and is not affiliated with Apple. For official libraries, see [Swift](https://github.com/apple/app-store-server-library-swift), [Node.js](https://github.com/apple/app-store-server-library-node), [Python](https://github.com/apple/app-store-server-library-python), and [Java](https://github.com/apple/app-store-server-library-java).
+
+## Table of Contents
+
+1. [Installation](#installation)
+2. [Documentation](#documentation)
+3. [Usage](#usage)
+4. [Using with Dependency Injection](#using-with-dependency-injection)
+
 ## Installation
+
+### Requirements
+
+- .NET 8.0+
+
+### NuGet
 
 ```bash
 dotnet add package Enjna.AppStoreServerLibrary
 ```
 
-## Quick Start
+## Documentation
+
+[Documentation](https://ahmedisam99.github.io/app-store-server-library-dotnet/index.html)
+
+[WWDC Video](https://developer.apple.com/videos/play/wwdc2023/10143/)
+
+### Obtaining an In-App Purchase key from App Store Connect
+
+To use the App Store Server API or create promotional offer signatures, a signing key downloaded from App Store Connect is required. To obtain this key, you must have the Admin role. Go to Users and Access > Integrations > In-App Purchase. Here you can create and manage keys, as well as find your issuer ID. When using a key, you'll need the key ID and issuer ID as well.
+
+### Obtaining Apple Root Certificates
+
+Download and store the root certificates found in the Apple Root Certificates section of the [Apple PKI](https://www.apple.com/certificateauthority/) site. Provide these certificates as an array to a `SignedDataVerifier` to allow verifying the signed data comes from Apple.
+
+## Usage
 
 ### API Client
 
 ```csharp
+var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
+var keyId = "ABCDEFGHIJ";
+var bundleId = "com.example";
 var privateKey = File.ReadAllText("/path/to/key.p8");
-var client = new AppStoreServerAPIClient(privateKey, "keyId", "issuerId", "com.example", Environment.Sandbox);
+var environment = AppStoreEnvironment.Sandbox;
 
-var response = await client.RequestTestNotificationAsync();
+var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, environment);
+
+var response = await client.RequestTestNotificationAsync(bundleId);
+Console.WriteLine(response.TestNotificationToken);
 ```
 
 ### Signed Data Verification
 
 ```csharp
+var bundleId = "com.example";
 var appleRootCAs = new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") };
-var verifier = new SignedDataVerifier(appleRootCAs, true, Environment.Sandbox, "com.example");
+var enableOnlineChecks = true;
+var environment = AppStoreEnvironment.Sandbox;
+long? appAppleId = null; // Optional. In Production, pass this if you want to validate it.
 
-var notification = await verifier.VerifyAndDecodeNotificationAsync(signedPayload);
+var verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment);
+
+var notificationPayload = "ey...";
+var verifiedNotification = await verifier.VerifyAndDecodeNotificationAsync(notificationPayload, bundleId, appAppleId);
+Console.WriteLine(verifiedNotification.NotificationType);
 ```
 
-## Available Classes
+### Receipt Usage
 
-### App Store Server API Client
-[`AppStoreServerAPIClient`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.AppStoreServerAPIClient.html) - Client for the App Store Server API
+```csharp
+var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
+var keyId = "ABCDEFGHIJ";
+var bundleId = "com.example";
+var privateKey = File.ReadAllText("/path/to/key.p8");
+var environment = AppStoreEnvironment.Sandbox;
 
-### Signed Data Verifier
-[`SignedDataVerifier`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.SignedDataVerifier.html) - Verify and decode signed data from App Store Server API, App Store Server Notifications, and the device
+var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, environment);
 
-### Receipt Utility
-[`ReceiptUtility`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.ReceiptUtility.html) - Extract transaction identifiers from App Store receipts
+var appReceipt = "MI...";
+var receiptUtility = new ReceiptUtility();
+var transactionId = receiptUtility.ExtractTransactionIdFromAppReceipt(appReceipt);
+if (transactionId is not null)
+{
+    var request = new TransactionHistoryRequest
+    {
+        Sort = SortOrder.Ascending,
+        Revoked = false,
+        ProductTypes = [ProductType.AutoRenewable]
+    };
 
-### Signature Creators
-- [`PromotionalOfferSignatureCreator`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.PromotionalOfferSignatureCreator.html) - Create promotional offer signatures for the original StoreKit API
-- [`PromotionalOfferV2SignatureCreator`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.PromotionalOfferV2SignatureCreator.html) - Create promotional offer V2 signatures
-- [`IntroductoryOfferEligibilitySignatureCreator`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.IntroductoryOfferEligibilitySignatureCreator.html) - Create introductory offer eligibility signatures
-- [`AdvancedCommerceInAppSignatureCreator`](/app-store-server-library-dotnet/api/Enjna.AppStoreServerLibrary.AdvancedCommerceInAppSignatureCreator.html) - Create Advanced Commerce in-app signatures
+    HistoryResponse? response = null;
+    var transactions = new List<string>();
+    do
+    {
+        request.Revision = response?.Revision;
+        response = await client.GetTransactionHistoryAsync(transactionId, bundleId, request);
+        if (response.SignedTransactions is not null)
+        {
+            transactions.AddRange(response.SignedTransactions);
+        }
+    } while (response.HasMore);
+
+    Console.WriteLine($"Found {transactions.Count} transactions");
+}
+```
+
+### Promotional Offer Signature Creation
+
+```csharp
+var keyId = "ABCDEFGHIJ";
+var bundleId = "com.example";
+var privateKey = File.ReadAllText("/path/to/key.p8");
+
+var productId = "<product_id>";
+var subscriptionOfferId = "<subscription_offer_id>";
+var appAccountToken = "<app_account_token>";
+var nonce = Guid.NewGuid();
+var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+using var signatureCreator = new PromotionalOfferSignatureCreator(privateKey, keyId);
+var signature = signatureCreator.CreateSignature(productId, subscriptionOfferId, appAccountToken, nonce, timestamp, bundleId);
+Console.WriteLine(signature);
+```
 
 ## Using with Dependency Injection
 
@@ -73,8 +153,7 @@ builder.Services.AddSingleton(sp =>
         privateKey,
         keyId: "ABCDEFGHIJ",
         issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
-        bundleId: "com.example",
-        environment: Environment.Production,
+        environment: AppStoreEnvironment.Production,
         httpClient: httpClient
     );
 });
@@ -93,8 +172,7 @@ builder.Services.AddHttpClient<AppStoreServerAPIClient>()
             privateKey,
             keyId: "ABCDEFGHIJ",
             issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
-            bundleId: "com.example",
-            environment: Environment.Production,
+            environment: AppStoreEnvironment.Production,
             httpClient: httpClient
         );
     });
@@ -110,23 +188,13 @@ The remaining classes don't use `HttpClient` and can be registered directly as s
 builder.Services.AddSingleton(new SignedDataVerifier(
     appleRootCertificates: new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") },
     enableOnlineChecks: true,
-    environment: Environment.Production,
-    bundleId: "com.example",
-    appAppleId: 123456789
+    environment: AppStoreEnvironment.Production
 ));
 
 builder.Services.AddSingleton<ReceiptUtility>();
 
 builder.Services.AddSingleton(new PromotionalOfferSignatureCreator(
     signingKey: File.ReadAllText("/path/to/key.p8"),
-    keyId: "ABCDEFGHIJ",
-    bundleId: "com.example"
+    keyId: "ABCDEFGHIJ"
 ));
 ```
-
-## Documentation
-
-- [App Store Server API](https://developer.apple.com/documentation/appstoreserverapi)
-- [App Store Server Notifications](https://developer.apple.com/documentation/appstoreservernotifications)
-- [Retention Messaging API](https://developer.apple.com/documentation/retentionmessaging)
-- [WWDC 2023: Meet the App Store Server Library](https://developer.apple.com/videos/play/wwdc2023/10143/)

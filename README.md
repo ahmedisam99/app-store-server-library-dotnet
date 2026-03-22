@@ -39,7 +39,7 @@ Download and store the root certificates found in the Apple Root Certificates se
 
 ## Usage
 
-### API Usage
+### API Client
 
 ```csharp
 var issuerId = "99b16628-15e4-4668-972b-eeff55eeff55";
@@ -54,7 +54,7 @@ var response = await client.RequestTestNotificationAsync(bundleId);
 Console.WriteLine(response.TestNotificationToken);
 ```
 
-### Verification Usage
+### Signed Data Verification
 
 ```csharp
 var bundleId = "com.example";
