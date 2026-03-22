@@ -14,19 +14,16 @@ public class PromotionalOfferSignatureCreator
 
     private readonly string _signingKey;
     private readonly string _keyId;
-    private readonly string _bundleId;
 
     /// <summary>
     /// Creates a new <see cref="PromotionalOfferSignatureCreator"/> instance.
     /// </summary>
     /// <param name="signingKey">Your private key downloaded from App Store Connect, in PEM format.</param>
     /// <param name="keyId">Your private key ID from App Store Connect.</param>
-    /// <param name="bundleId">Your app's bundle ID.</param>
-    public PromotionalOfferSignatureCreator(string signingKey, string keyId, string bundleId)
+    public PromotionalOfferSignatureCreator(string signingKey, string keyId)
     {
         _signingKey = signingKey;
         _keyId = keyId;
-        _bundleId = bundleId;
     }
 
     /// <summary>
@@ -37,7 +34,7 @@ public class PromotionalOfferSignatureCreator
     /// <param name="appAccountToken">An optional string value that you define; may be an empty string.</param>
     /// <param name="nonce">A one-time UUID value that your server generates. Generate a new nonce for every signature.</param>
     /// <param name="timestamp">A timestamp in UNIX time format, in milliseconds. The timestamp keeps the offer active for 24 hours.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
     /// <returns>The Base64 encoded signature.</returns>
     public string CreateSignature(
         string productIdentifier,
@@ -45,10 +42,10 @@ public class PromotionalOfferSignatureCreator
         string appAccountToken,
         Guid nonce,
         long timestamp,
-        string? bundleId = null)
+        string bundleId)
     {
         var payload = string.Join(Separator,
-            bundleId ?? _bundleId,
+            bundleId,
             _keyId,
             productIdentifier,
             subscriptionOfferId,

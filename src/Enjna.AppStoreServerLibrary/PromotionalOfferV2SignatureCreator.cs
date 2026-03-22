@@ -14,9 +14,8 @@ public class PromotionalOfferV2SignatureCreator : JWSSignatureCreator
     /// <param name="signingKey">Your private key downloaded from App Store Connect, in PEM format.</param>
     /// <param name="keyId">Your private key ID from App Store Connect.</param>
     /// <param name="issuerId">Your issuer ID from the Keys page in App Store Connect.</param>
-    /// <param name="bundleId">Your app's bundle ID.</param>
-    public PromotionalOfferV2SignatureCreator(string signingKey, string keyId, string issuerId, string bundleId)
-        : base("promotional-offer", signingKey, keyId, issuerId, bundleId)
+    public PromotionalOfferV2SignatureCreator(string signingKey, string keyId, string issuerId)
+        : base("promotional-offer", signingKey, keyId, issuerId)
     {
     }
 
@@ -25,10 +24,10 @@ public class PromotionalOfferV2SignatureCreator : JWSSignatureCreator
     /// </summary>
     /// <param name="productId">The unique identifier of the product.</param>
     /// <param name="offerIdentifier">The promotional offer identifier that you set up in App Store Connect.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
     /// <param name="transactionId">The unique identifier of any transaction that belongs to the customer. Optional, but recommended.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
     /// <returns>The signed JWS.</returns>
-    public string CreateSignature(string productId, string offerIdentifier, string? transactionId = null, string? bundleId = null)
+    public string CreateSignature(string productId, string offerIdentifier, string bundleId, string? transactionId = null)
     {
         var claims = new Dictionary<string, object>
         {

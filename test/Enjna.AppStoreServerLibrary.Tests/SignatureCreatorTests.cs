@@ -37,8 +37,8 @@ public class SignatureCreatorTests
     [Fact]
     public void PromotionalOfferV2_WithTransactionId_CreatesValidSignature()
     {
-        var creator = new PromotionalOfferV2SignatureCreator(_signingKey, KeyId, IssuerId, BundleId);
-        var signature = creator.CreateSignature("productId", "offerIdentifier", "transactionId");
+        var creator = new PromotionalOfferV2SignatureCreator(_signingKey, KeyId, IssuerId);
+        var signature = creator.CreateSignature("productId", "offerIdentifier", BundleId, "transactionId");
 
         var (header, payload) = DecodeJwtParts(signature);
 
@@ -63,8 +63,8 @@ public class SignatureCreatorTests
     [Fact]
     public void PromotionalOfferV2_WithoutTransactionId_OmitsTransactionId()
     {
-        var creator = new PromotionalOfferV2SignatureCreator(_signingKey, KeyId, IssuerId, BundleId);
-        var signature = creator.CreateSignature("productId", "offerIdentifier");
+        var creator = new PromotionalOfferV2SignatureCreator(_signingKey, KeyId, IssuerId);
+        var signature = creator.CreateSignature("productId", "offerIdentifier", BundleId);
 
         var (header, payload) = DecodeJwtParts(signature);
 
@@ -80,8 +80,8 @@ public class SignatureCreatorTests
     [Fact]
     public void IntroductoryOfferEligibility_CreatesValidSignature()
     {
-        var creator = new IntroductoryOfferEligibilitySignatureCreator(_signingKey, KeyId, IssuerId, BundleId);
-        var signature = creator.CreateSignature("productId", true, "transactionId");
+        var creator = new IntroductoryOfferEligibilitySignatureCreator(_signingKey, KeyId, IssuerId);
+        var signature = creator.CreateSignature("productId", true, "transactionId", BundleId);
 
         var (header, payload) = DecodeJwtParts(signature);
 
@@ -106,9 +106,9 @@ public class SignatureCreatorTests
     [Fact]
     public void AdvancedCommerceInApp_CreatesValidSignature()
     {
-        var creator = new AdvancedCommerceInAppSignatureCreator(_signingKey, KeyId, IssuerId, BundleId);
+        var creator = new AdvancedCommerceInAppSignatureCreator(_signingKey, KeyId, IssuerId);
         var requestObj = new { key = "value" };
-        var signature = creator.CreateSignature(requestObj);
+        var signature = creator.CreateSignature(requestObj, BundleId);
 
         var (header, payload) = DecodeJwtParts(signature);
 
@@ -136,11 +136,11 @@ public class SignatureCreatorTests
     [Fact]
     public void LegacyPromotionalOffer_CreatesNonNullSignature()
     {
-        var creator = new PromotionalOfferSignatureCreator(_signingKey, KeyId, BundleId);
+        var creator = new PromotionalOfferSignatureCreator(_signingKey, KeyId);
         var nonce = Guid.NewGuid();
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-        var signature = creator.CreateSignature("productId", "offerId", "", nonce, timestamp);
+        var signature = creator.CreateSignature("productId", "offerId", "", nonce, timestamp, BundleId);
 
         Assert.NotNull(signature);
         Assert.NotEmpty(signature);
@@ -152,14 +152,14 @@ public class SignatureCreatorTests
     [Fact]
     public void LegacyPromotionalOffer_ProducesDerEncodedSignature()
     {
-        var creator = new PromotionalOfferSignatureCreator(_signingKey, KeyId, BundleId);
+        var creator = new PromotionalOfferSignatureCreator(_signingKey, KeyId);
         var nonce = Guid.NewGuid();
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var productId = "productId";
         var offerId = "offerId";
         var appAccountToken = "token";
 
-        var signature = creator.CreateSignature(productId, offerId, appAccountToken, nonce, timestamp);
+        var signature = creator.CreateSignature(productId, offerId, appAccountToken, nonce, timestamp, BundleId);
         var signatureBytes = Convert.FromBase64String(signature);
 
         // DER-encoded ECDSA signatures start with 0x30 (SEQUENCE tag)

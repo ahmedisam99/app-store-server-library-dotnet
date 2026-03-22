@@ -44,20 +44,18 @@ internal static class TestUtilities
         return ReadResourceAsString("certs.testSigningKey.p8");
     }
 
-    public static SignedDataVerifier GetSignedPayloadVerifier(Environment environment, string bundleId, long appAppleId)
+    public static SignedDataVerifier GetSignedPayloadVerifier(Environment environment)
     {
         var rootCertBytes = ReadResourceAsBytes("certs.testCA.der");
         return new SignedDataVerifier(
             [rootCertBytes],
             enableOnlineChecks: false,
-            environment: environment,
-            bundleId: bundleId,
-            appAppleId: appAppleId);
+            environment: environment);
     }
 
     public static SignedDataVerifier GetDefaultSignedPayloadVerifier()
     {
-        return GetSignedPayloadVerifier(Environment.LocalTesting, "com.example", 1234);
+        return GetSignedPayloadVerifier(Environment.LocalTesting);
     }
 
     public static string CreateSignedDataFromJson(string resourcePath)

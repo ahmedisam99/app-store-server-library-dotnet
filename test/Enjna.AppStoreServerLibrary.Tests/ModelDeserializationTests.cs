@@ -235,11 +235,11 @@ public class ModelDeserializationTests
         // The token's externalPurchaseId does NOT start with "SANDBOX", so derived env = Production.
         // bundleId/appAppleId match → passes that check, then environment mismatch → InvalidEnvironment.
         // This proves the correct values are extracted from externalPurchaseToken (not from data).
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting, "com.example", 55555);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting);
         var signed = TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenNotification.json");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signed,
+            verifier.VerifyAndDecodeNotificationAsync(signed, "com.example", 55555,
                 cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidEnvironment, ex.Status);
 
@@ -267,12 +267,12 @@ public class ModelDeserializationTests
     {
         // Same approach: externalPurchaseId starts with "SANDBOX_", so derived env = Sandbox.
         // Verifier env = LocalTesting → environment mismatch → InvalidEnvironment.
-        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting, "com.example", 55555);
+        var verifier = TestUtilities.GetSignedPayloadVerifier(Environment.LocalTesting);
         var signed =
             TestUtilities.CreateSignedDataFromJson("models.signedExternalPurchaseTokenSandboxNotification.json");
 
         var ex = await Assert.ThrowsAsync<VerificationException>(() =>
-            verifier.VerifyAndDecodeNotificationAsync(signed,
+            verifier.VerifyAndDecodeNotificationAsync(signed, "com.example", 55555,
                 cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(VerificationStatus.InvalidEnvironment, ex.Status);
 

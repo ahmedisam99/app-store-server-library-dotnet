@@ -19,9 +19,8 @@ public class AdvancedCommerceInAppSignatureCreator : JWSSignatureCreator
     /// <param name="signingKey">Your private key downloaded from App Store Connect, in PEM format.</param>
     /// <param name="keyId">Your private key ID from App Store Connect.</param>
     /// <param name="issuerId">Your issuer ID from the Keys page in App Store Connect.</param>
-    /// <param name="bundleId">Your app's bundle ID.</param>
-    public AdvancedCommerceInAppSignatureCreator(string signingKey, string keyId, string issuerId, string bundleId)
-        : base("advanced-commerce-api", signingKey, keyId, issuerId, bundleId)
+    public AdvancedCommerceInAppSignatureCreator(string signingKey, string keyId, string issuerId)
+        : base("advanced-commerce-api", signingKey, keyId, issuerId)
     {
     }
 
@@ -29,9 +28,9 @@ public class AdvancedCommerceInAppSignatureCreator : JWSSignatureCreator
     /// Creates an Advanced Commerce in-app signed request.
     /// </summary>
     /// <param name="request">The request object to be signed.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
     /// <returns>The signed JWS.</returns>
-    public string CreateSignature(object request, string? bundleId = null)
+    public string CreateSignature(object request, string bundleId)
     {
         var json = JsonSerializer.Serialize(request, JsonOptions);
         var base64Request = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));

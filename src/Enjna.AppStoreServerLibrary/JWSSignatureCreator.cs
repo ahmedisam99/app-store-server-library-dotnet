@@ -16,7 +16,6 @@ public abstract class JWSSignatureCreator
     private readonly string _signingKey;
     private readonly string _keyId;
     private readonly string _issuerId;
-    private readonly string _bundleId;
 
     /// <summary>
     /// Creates a new <see cref="JWSSignatureCreator"/> instance.
@@ -25,23 +24,21 @@ public abstract class JWSSignatureCreator
     /// <param name="signingKey">Your private key downloaded from App Store Connect, in PEM format.</param>
     /// <param name="keyId">Your private key ID from App Store Connect.</param>
     /// <param name="issuerId">Your issuer ID from the Keys page in App Store Connect.</param>
-    /// <param name="bundleId">Your app's bundle ID.</param>
-    protected JWSSignatureCreator(string audience, string signingKey, string keyId, string issuerId, string bundleId)
+    protected JWSSignatureCreator(string audience, string signingKey, string keyId, string issuerId)
     {
         _audience = audience;
         _signingKey = signingKey;
         _keyId = keyId;
         _issuerId = issuerId;
-        _bundleId = bundleId;
     }
 
     /// <summary>
     /// Creates a signed JWS with the given feature-specific claims.
     /// </summary>
     /// <param name="featureSpecificClaims">The claims specific to the feature being signed.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
     /// <returns>The signed JWS.</returns>
-    protected string CreateSignature(Dictionary<string, object> featureSpecificClaims, string? bundleId = null)
+    protected string CreateSignature(Dictionary<string, object> featureSpecificClaims, string bundleId)
     {
         var ecdsa = ECDsa.Create();
         ecdsa.ImportFromPem(_signingKey);
@@ -51,7 +48,7 @@ public abstract class JWSSignatureCreator
             KeyId = _keyId
         };
 
-        featureSpecificClaims["bid"] = bundleId ?? _bundleId;
+        featureSpecificClaims["bid"] = bundleId;
         featureSpecificClaims["nonce"] = Guid.NewGuid().ToString();
 
         var descriptor = new SecurityTokenDescriptor

@@ -29,8 +29,6 @@ public class SignedDataVerifier : IDisposable
     private readonly X509Certificate2[] _rootCertificates;
     private readonly bool _enableOnlineChecks;
     private readonly Environment _environment;
-    private readonly string _bundleId;
-    private readonly long? _appAppleId;
     private bool _disposed;
 
     internal readonly object CacheLock = new();
@@ -44,27 +42,21 @@ public class SignedDataVerifier : IDisposable
     /// <param name="appleRootCertificates">A list of DER-encoded Apple root certificates.</param>
     /// <param name="enableOnlineChecks">Whether to enable revocation checking and check expiration using the current date.</param>
     /// <param name="environment">The App Store environment to target for checks.</param>
-    /// <param name="bundleId">The app's bundle identifier.</param>
-    /// <param name="appAppleId">The app's identifier. When provided in Production, it will be validated against the payload.</param>
     public SignedDataVerifier(
         byte[][] appleRootCertificates,
         bool enableOnlineChecks,
-        Environment environment,
-        string bundleId,
-        long? appAppleId = null)
+        Environment environment)
     {
         _rootCertificates = appleRootCertificates.Select(cert => new X509Certificate2(cert)).ToArray();
         _enableOnlineChecks = enableOnlineChecks;
         _environment = environment;
-        _bundleId = bundleId;
-        _appAppleId = appAppleId;
     }
 
     /// <summary>
     /// Verifies and decodes a signedTransaction obtained from the App Store Server API, an App Store Server Notification, or from a device.
     /// </summary>
     /// <param name="signedTransaction">The signedTransaction field.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
+    /// <param name="bundleId">An optional bundle ID to validate against the payload.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded transaction info after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
@@ -78,11 +70,9 @@ public class SignedDataVerifier : IDisposable
             await VerifyJwtAsync<JWSTransactionDecodedPayload>(signedTransaction, ExtractSignedDate, cancellationToken)
                 .ConfigureAwait(false);
 
-        var effectiveBundleId = bundleId ?? _bundleId;
-
-        if (decoded.BundleId != effectiveBundleId)
+        if (bundleId is not null && decoded.BundleId != bundleId)
         {
-            throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
+            throw new VerificationException(VerificationStatus.InvalidBundleId);
         }
 
         if (decoded.Environment != _environment)
@@ -121,8 +111,8 @@ public class SignedDataVerifier : IDisposable
     /// Verifies and decodes an App Store Server Notification signedPayload.
     /// </summary>
     /// <param name="signedPayload">The payload received by your server.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
-    /// <param name="appAppleId">An optional app Apple ID to use instead of the one provided in the constructor.</param>
+    /// <param name="bundleId">An optional bundle ID to validate against the payload.</param>
+    /// <param name="appAppleId">An optional app Apple ID to validate against the payload.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded payload after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
@@ -170,14 +160,14 @@ public class SignedDataVerifier : IDisposable
             environment = decoded.AppData.Environment;
         }
 
-        var effectiveBundleId = bundleId ?? _bundleId;
-        var effectiveAppAppleId = appAppleId ?? _appAppleId;
-
-        if (effectiveBundleId != decodedBundleId ||
-            (_environment == Environment.Production && effectiveAppAppleId is not null &&
-             effectiveAppAppleId != decodedAppAppleId))
+        if (bundleId is not null && bundleId != decodedBundleId)
         {
-            throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
+            throw new VerificationException(VerificationStatus.InvalidBundleId);
+        }
+
+        if (_environment == Environment.Production && appAppleId is not null && appAppleId != decodedAppAppleId)
+        {
+            throw new VerificationException(VerificationStatus.InvalidAppAppleId);
         }
 
         if (_environment != environment)
@@ -192,8 +182,8 @@ public class SignedDataVerifier : IDisposable
     /// Verifies and decodes a signed AppTransaction.
     /// </summary>
     /// <param name="signedAppTransaction">The signed AppTransaction.</param>
-    /// <param name="bundleId">An optional bundle ID to use instead of the one provided in the constructor.</param>
-    /// <param name="appAppleId">An optional app Apple ID to use instead of the one provided in the constructor.</param>
+    /// <param name="bundleId">An optional bundle ID to validate against the payload.</param>
+    /// <param name="appAppleId">An optional app Apple ID to validate against the payload.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded AppTransaction after validation.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
@@ -208,14 +198,14 @@ public class SignedDataVerifier : IDisposable
             await VerifyJwtAsync<AppTransaction>(signedAppTransaction, ExtractReceiptCreationDate, cancellationToken)
                 .ConfigureAwait(false);
 
-        var effectiveBundleId = bundleId ?? _bundleId;
-        var effectiveAppAppleId = appAppleId ?? _appAppleId;
-
-        if (decoded.BundleId != effectiveBundleId ||
-            (_environment == Environment.Production && effectiveAppAppleId is not null &&
-             decoded.AppAppleId != effectiveAppAppleId))
+        if (bundleId is not null && decoded.BundleId != bundleId)
         {
-            throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
+            throw new VerificationException(VerificationStatus.InvalidBundleId);
+        }
+
+        if (_environment == Environment.Production && appAppleId is not null && decoded.AppAppleId != appAppleId)
+        {
+            throw new VerificationException(VerificationStatus.InvalidAppAppleId);
         }
 
         if (decoded.ReceiptType != _environment)
@@ -230,7 +220,7 @@ public class SignedDataVerifier : IDisposable
     /// Verifies and decodes a Retention Messaging API signedPayload.
     /// </summary>
     /// <param name="signedPayload">The payload received by your server.</param>
-    /// <param name="appAppleId">An optional app Apple ID to use instead of the one provided in the constructor.</param>
+    /// <param name="appAppleId">An optional app Apple ID to validate against the payload.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>The decoded payload after verification.</returns>
     /// <exception cref="VerificationException">Thrown if the data could not be verified.</exception>
@@ -244,12 +234,9 @@ public class SignedDataVerifier : IDisposable
             await VerifyJwtAsync<DecodedRealtimeRequestBody>(signedPayload, ExtractSignedDate, cancellationToken)
                 .ConfigureAwait(false);
 
-        var effectiveAppAppleId = appAppleId ?? _appAppleId;
-
-        if (_environment == Environment.Production && effectiveAppAppleId is not null &&
-            decoded.AppAppleId != effectiveAppAppleId)
+        if (_environment == Environment.Production && appAppleId is not null && decoded.AppAppleId != appAppleId)
         {
-            throw new VerificationException(VerificationStatus.InvalidAppIdentifier);
+            throw new VerificationException(VerificationStatus.InvalidAppAppleId);
         }
 
         if (decoded.Environment != _environment)

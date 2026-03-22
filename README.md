@@ -48,9 +48,9 @@ var bundleId = "com.example";
 var privateKey = File.ReadAllText("/path/to/key.p8");
 var environment = Environment.Sandbox;
 
-var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, bundleId, environment);
+var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, environment);
 
-var response = await client.RequestTestNotificationAsync();
+var response = await client.RequestTestNotificationAsync(bundleId);
 Console.WriteLine(response.TestNotificationToken);
 ```
 
@@ -61,12 +61,12 @@ var bundleId = "com.example";
 var appleRootCAs = new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") };
 var enableOnlineChecks = true;
 var environment = Environment.Sandbox;
-long? appAppleId = null; // appAppleId is required when the environment is Production
+long? appAppleId = null; // Optional. In Production, pass this if you want to validate it.
 
-var verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment, bundleId, appAppleId);
+var verifier = new SignedDataVerifier(appleRootCAs, enableOnlineChecks, environment);
 
 var notificationPayload = "ey...";
-var verifiedNotification = await verifier.VerifyAndDecodeNotificationAsync(notificationPayload);
+var verifiedNotification = await verifier.VerifyAndDecodeNotificationAsync(notificationPayload, bundleId, appAppleId);
 Console.WriteLine(verifiedNotification.NotificationType);
 ```
 
@@ -79,7 +79,7 @@ var bundleId = "com.example";
 var privateKey = File.ReadAllText("/path/to/key.p8");
 var environment = Environment.Sandbox;
 
-var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, bundleId, environment);
+var client = new AppStoreServerAPIClient(privateKey, keyId, issuerId, environment);
 
 var appReceipt = "MI...";
 var receiptUtility = new ReceiptUtility();
@@ -97,8 +97,8 @@ if (transactionId is not null)
     var transactions = new List<string>();
     do
     {
-        var revision = response?.Revision;
-        response = await client.GetTransactionHistoryAsync(transactionId, revision, request);
+        request.Revision = response?.Revision;
+        response = await client.GetTransactionHistoryAsync(transactionId, bundleId, request);
         if (response.SignedTransactions is not null)
         {
             transactions.AddRange(response.SignedTransactions);
@@ -122,8 +122,8 @@ var appAccountToken = "<app_account_token>";
 var nonce = Guid.NewGuid();
 var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
-using var signatureCreator = new PromotionalOfferSignatureCreator(privateKey, keyId, bundleId);
-var signature = signatureCreator.CreateSignature(productId, subscriptionOfferId, appAccountToken, nonce, timestamp);
+using var signatureCreator = new PromotionalOfferSignatureCreator(privateKey, keyId);
+var signature = signatureCreator.CreateSignature(productId, subscriptionOfferId, appAccountToken, nonce, timestamp, bundleId);
 Console.WriteLine(signature);
 ```
 
@@ -149,7 +149,6 @@ builder.Services.AddSingleton(sp =>
         privateKey,
         keyId: "ABCDEFGHIJ",
         issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
-        bundleId: "com.example",
         environment: Environment.Production,
         httpClient: httpClient
     );
@@ -169,7 +168,6 @@ builder.Services.AddHttpClient<AppStoreServerAPIClient>()
             privateKey,
             keyId: "ABCDEFGHIJ",
             issuerId: "99b16628-15e4-4668-972b-eeff55eeff55",
-            bundleId: "com.example",
             environment: Environment.Production,
             httpClient: httpClient
         );
@@ -186,16 +184,13 @@ The remaining classes don't use `HttpClient` and can be registered directly as s
 builder.Services.AddSingleton(new SignedDataVerifier(
     appleRootCertificates: new[] { File.ReadAllBytes("/path/to/AppleRootCA-G3.cer") },
     enableOnlineChecks: true,
-    environment: Environment.Production,
-    bundleId: "com.example",
-    appAppleId: 123456789
+    environment: Environment.Production
 ));
 
 builder.Services.AddSingleton<ReceiptUtility>();
 
 builder.Services.AddSingleton(new PromotionalOfferSignatureCreator(
     signingKey: File.ReadAllText("/path/to/key.p8"),
-    keyId: "ABCDEFGHIJ",
-    bundleId: "com.example"
+    keyId: "ABCDEFGHIJ"
 ));
 ```
