@@ -28,4 +28,11 @@ public sealed class RealtimeResponseBody
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/promotionaloffer"/>
     [JsonPropertyName("promotionalOffer")]
     public PromotionalOffer? PromotionalOffer { get; set; }
+
+    /// <summary>
+    /// A retention offer or switch plan option backed by the Advanced Commerce API.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/advancedcommerceinfo"/>
+    [JsonPropertyName("advancedCommerceInfo")]
+    public AdvancedCommerceInfo? AdvancedCommerceInfo { get; set; }
 }

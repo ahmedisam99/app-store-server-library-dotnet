@@ -63,6 +63,34 @@ public class ModelDeserializationTests
         Assert.Equal("71134", decoded.AppTransactionId);
         Assert.Equal("P1Y", decoded.OfferPeriod);
         Assert.Equal("7e3fb20b-4cdb-47cc-936d-99d65f608138", decoded.AppAccountToken);
+        Assert.Equal(RenewalBillingPlanType.Monthly, decoded.RenewalBillingPlanType);
+
+        Assert.NotNull(decoded.CommitmentInfo);
+        Assert.Equal("com.example.product.commitment", decoded.CommitmentInfo.CommitmentAutoRenewProductId);
+        Assert.Equal(AutoRenewStatus.On, decoded.CommitmentInfo.CommitmentAutoRenewStatus);
+        Assert.Equal(RenewalBillingPlanType.Monthly, decoded.CommitmentInfo.CommitmentRenewalBillingPlanType);
+        Assert.Equal(1698149500000L, decoded.CommitmentInfo.CommitmentRenewalDate);
+        Assert.Equal(9990L, decoded.CommitmentInfo.CommitmentRenewalPrice);
+
+        Assert.NotNull(decoded.AdvancedCommerceInfo);
+        Assert.Equal("token-abc-123", decoded.AdvancedCommerceInfo.ConsistencyToken);
+        Assert.Equal("ref-12345", decoded.AdvancedCommerceInfo.RequestReferenceId);
+        Assert.Equal("TAX_CODE_1", decoded.AdvancedCommerceInfo.TaxCode);
+        Assert.Equal(AdvancedCommercePeriod.P1M, decoded.AdvancedCommerceInfo.Period);
+        Assert.NotNull(decoded.AdvancedCommerceInfo.Descriptors);
+        Assert.Equal("Premium Plan", decoded.AdvancedCommerceInfo.Descriptors.Description);
+        Assert.Equal("Premium", decoded.AdvancedCommerceInfo.Descriptors.DisplayName);
+        Assert.NotNull(decoded.AdvancedCommerceInfo.Items);
+        Assert.Single(decoded.AdvancedCommerceInfo.Items);
+        var renewalItem = decoded.AdvancedCommerceInfo.Items[0];
+        Assert.Equal("com.example.sku.premium", renewalItem.Sku);
+        Assert.Equal("Premium feature", renewalItem.Description);
+        Assert.Equal("Premium Feature", renewalItem.DisplayName);
+        Assert.Equal(9990L, renewalItem.Price);
+        Assert.NotNull(renewalItem.PriceIncreaseInfo);
+        Assert.Equal(new[] { "com.example.sku.1", "com.example.sku.2" }, renewalItem.PriceIncreaseInfo.DependentSkus);
+        Assert.Equal(12990L, renewalItem.PriceIncreaseInfo.Price);
+        Assert.Equal(AdvancedCommercePriceIncreaseInfoStatus.Pending, renewalItem.PriceIncreaseInfo.Status);
     }
 
     [Fact]
@@ -103,6 +131,38 @@ public class ModelDeserializationTests
         Assert.Equal(OfferDiscountType.PayAsYouGo, decoded.OfferDiscountType);
         Assert.Equal("71134", decoded.AppTransactionId);
         Assert.Equal("P1Y", decoded.OfferPeriod);
+
+        Assert.Equal(BillingPlanType.Monthly, decoded.BillingPlanType);
+        Assert.NotNull(decoded.CommitmentInfo);
+        Assert.Equal(3, decoded.CommitmentInfo.BillingPeriodNumber);
+        Assert.Equal(1698150000000L, decoded.CommitmentInfo.CommitmentExpiresDate);
+        Assert.Equal(119880L, decoded.CommitmentInfo.CommitmentPrice);
+        Assert.Equal(12, decoded.CommitmentInfo.TotalBillingPeriods);
+
+        Assert.NotNull(decoded.AdvancedCommerceInfo);
+        Assert.Equal("ref-12345", decoded.AdvancedCommerceInfo.RequestReferenceId);
+        Assert.Equal("TAX_CODE_1", decoded.AdvancedCommerceInfo.TaxCode);
+        Assert.Equal(AdvancedCommercePeriod.P1M, decoded.AdvancedCommerceInfo.Period);
+        Assert.Equal(1500L, decoded.AdvancedCommerceInfo.EstimatedTax);
+        Assert.Equal(8490L, decoded.AdvancedCommerceInfo.TaxExclusivePrice);
+        Assert.Equal("0.15", decoded.AdvancedCommerceInfo.TaxRate);
+        Assert.NotNull(decoded.AdvancedCommerceInfo.Descriptors);
+        Assert.Equal("Premium Plan", decoded.AdvancedCommerceInfo.Descriptors.Description);
+        Assert.Equal("Premium", decoded.AdvancedCommerceInfo.Descriptors.DisplayName);
+        Assert.NotNull(decoded.AdvancedCommerceInfo.Items);
+        Assert.Single(decoded.AdvancedCommerceInfo.Items);
+        var txItem = decoded.AdvancedCommerceInfo.Items[0];
+        Assert.Equal("com.example.sku.premium", txItem.Sku);
+        Assert.Equal("Premium feature", txItem.Description);
+        Assert.Equal("Premium Feature", txItem.DisplayName);
+        Assert.Equal(9990L, txItem.Price);
+        Assert.Equal(1698149200000L, txItem.RevocationDate);
+        Assert.NotNull(txItem.Refunds);
+        Assert.Single(txItem.Refunds);
+        Assert.Equal(5000L, txItem.Refunds[0].RefundAmount);
+        Assert.Equal(1698149100000L, txItem.Refunds[0].RefundDate);
+        Assert.Equal(AdvancedCommerceRefundReason.FulfillmentIssue, txItem.Refunds[0].RefundReason);
+        Assert.Equal(AdvancedCommerceRefundType.Prorated, txItem.Refunds[0].RefundType);
     }
 
     [Fact]
@@ -463,5 +523,27 @@ public class ModelDeserializationTests
         Assert.True(doc.RootElement.TryGetProperty("message", out _));
         Assert.True(doc.RootElement.TryGetProperty("alternateProduct", out _));
         Assert.True(doc.RootElement.TryGetProperty("promotionalOffer", out _));
+        Assert.True(doc.RootElement.TryGetProperty("advancedCommerceInfo", out _));
+    }
+
+    [Fact]
+    public void RealtimeResponseBody_AdvancedCommerceInfo_SerializesCorrectly()
+    {
+        var body = new RealtimeResponseBody
+        {
+            AdvancedCommerceInfo = new AdvancedCommerceInfo
+            {
+                MessageIdentifier = "msg-id",
+                AdvancedCommerceData = "base64-encoded-jws"
+            }
+        };
+
+        var json = JsonSerializer.Serialize(body);
+        var deserialized = JsonSerializer.Deserialize<RealtimeResponseBody>(json);
+
+        Assert.NotNull(deserialized);
+        Assert.NotNull(deserialized.AdvancedCommerceInfo);
+        Assert.Equal("msg-id", deserialized.AdvancedCommerceInfo.MessageIdentifier);
+        Assert.Equal("base64-encoded-jws", deserialized.AdvancedCommerceInfo.AdvancedCommerceData);
     }
 }

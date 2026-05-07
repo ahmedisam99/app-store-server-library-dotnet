@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -21,4 +22,11 @@ public sealed class AlternateProduct
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/productid"/>
     [JsonPropertyName("productId")]
     public string? ProductId { get; set; }
+
+    /// <summary>
+    /// The billing plan type for the alternate product.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/billingplantype"/>
+    [JsonPropertyName("billingPlanType")]
+    public BillingPlanType? BillingPlanType { get; set; }
 }

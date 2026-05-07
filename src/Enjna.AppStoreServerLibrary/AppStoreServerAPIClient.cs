@@ -24,10 +24,10 @@ namespace Enjna.AppStoreServerLibrary;
 /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi"/>
 public class AppStoreServerAPIClient : IDisposable
 {
-    private const string ProductionUrl = "https://api.storekit.itunes.apple.com";
-    private const string SandboxUrl = "https://api.storekit-sandbox.itunes.apple.com";
+    private const string ProductionUrl = "https://api.storekit.apple.com";
+    private const string SandboxUrl = "https://api.storekit-sandbox.apple.com";
     private const string LocalTestingUrl = "https://local-testing-base-url";
-    private const string UserAgent = "enjna-app-store-server-library/dotnet/2.0.0";
+    private const string UserAgent = "enjna-app-store-server-library/dotnet/2.1.0";
     private static readonly JsonSerializerOptions JsonOptions = new();
 
     private readonly string _signingKey;
@@ -128,7 +128,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <summary>
     /// Get the statuses for all of a customer's auto-renewable subscriptions in your app.
     /// </summary>
-    /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
+    /// <param name="anyTransactionId">Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.</param>
     /// <param name="bundleId">Your app's bundle ID.</param>
     /// <param name="status">An optional filter that indicates the status of subscriptions to include in the response. Your query may specify more than one status query parameter.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
@@ -136,7 +136,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_all_subscription_statuses"/>
     public async Task<StatusResponse> GetAllSubscriptionStatusesAsync(
-        string transactionId,
+        string anyTransactionId,
         string bundleId,
         Status[]? status = null,
         CancellationToken cancellationToken = default)
@@ -148,7 +148,7 @@ public class AppStoreServerAPIClient : IDisposable
         }
 
         return await MakeRequestAsync<StatusResponse>(
-                path: $"/inApps/v1/subscriptions/{transactionId}",
+                path: $"/inApps/v1/subscriptions/{anyTransactionId}",
                 method: HttpMethod.Get,
                 queryParameters: queryParams,
                 body: null,
@@ -161,7 +161,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <summary>
     /// Get a paginated list of all of a customer's refunded in-app purchases for your app.
     /// </summary>
-    /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
+    /// <param name="anyTransactionId">Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.</param>
     /// <param name="bundleId">Your app's bundle ID.</param>
     /// <param name="revision">A token you provide to get the next set of up to 20 transactions. All responses include a revision token. Use the revision token from the previous <see cref="RefundHistoryResponse"/>.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
@@ -169,7 +169,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_refund_history"/>
     public async Task<RefundHistoryResponse> GetRefundHistoryAsync(
-        string transactionId,
+        string anyTransactionId,
         string bundleId,
         string? revision = null,
         CancellationToken cancellationToken = default)
@@ -181,7 +181,7 @@ public class AppStoreServerAPIClient : IDisposable
         }
 
         return await MakeRequestAsync<RefundHistoryResponse>(
-                path: $"/inApps/v2/refund/lookup/{transactionId}",
+                path: $"/inApps/v2/refund/lookup/{anyTransactionId}",
                 method: HttpMethod.Get,
                 queryParameters: queryParams,
                 body: null,
@@ -279,7 +279,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <summary>
     /// Get a customer's in-app purchase transaction history for your app.
     /// </summary>
-    /// <param name="transactionId">The identifier of a transaction that belongs to the customer, and which may be an original transaction identifier.</param>
+    /// <param name="anyTransactionId">Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.</param>
     /// <param name="bundleId">Your app's bundle ID.</param>
     /// <param name="request">An optional request that includes query constraints.</param>
     /// <param name="version">The version of the Get Transaction History endpoint to use. V2 is recommended.</param>
@@ -288,7 +288,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get_transaction_history"/>
     public async Task<HistoryResponse> GetTransactionHistoryAsync(
-        string transactionId,
+        string anyTransactionId,
         string bundleId,
         TransactionHistoryRequest? request = null,
         GetTransactionHistoryVersion version = GetTransactionHistoryVersion.V2,
@@ -344,7 +344,7 @@ public class AppStoreServerAPIClient : IDisposable
         var versionStr = GetEnumMemberValue(version);
 
         return await MakeRequestAsync<HistoryResponse>(
-                path: $"/inApps/{versionStr}/history/{transactionId}",
+                path: $"/inApps/{versionStr}/history/{anyTransactionId}",
                 method: HttpMethod.Get,
                 queryParameters: queryParams,
                 body: null,
@@ -512,6 +512,7 @@ public class AppStoreServerAPIClient : IDisposable
     /// <param name="imageIdentifier">A UUID you provide to uniquely identify the image you upload. Must be lowercase.</param>
     /// <param name="image">The image file to upload.</param>
     /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="imageSize">The size of the image you upload.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/upload-image"/>
@@ -519,12 +520,22 @@ public class AppStoreServerAPIClient : IDisposable
         string imageIdentifier,
         byte[] image,
         string bundleId,
+        ImageSize? imageSize = null,
         CancellationToken cancellationToken = default)
     {
+        Dictionary<string, string[]>? queryParams = null;
+        if (imageSize.HasValue)
+        {
+            queryParams = new Dictionary<string, string[]>
+            {
+                ["imageSize"] = [GetEnumMemberValue(imageSize.Value)]
+            };
+        }
+
         await MakeRequestAsync<object?>(
                 path: $"/inApps/v1/messaging/image/{imageIdentifier}",
                 method: HttpMethod.Put,
-                queryParameters: null,
+                queryParameters: queryParams,
                 body: image,
                 parseResponse: false,
                 bundleId: bundleId,
@@ -709,19 +720,189 @@ public class AppStoreServerAPIClient : IDisposable
     /// <summary>
     /// Get a customer's app transaction information for your app.
     /// </summary>
-    /// <param name="transactionId">Any originalTransactionId, transactionId or appTransactionId that belongs to the customer for your app.</param>
+    /// <param name="anyTransactionId">Any transactionId, originalTransactionId, or appTransactionId that belongs to the customer for your app.</param>
     /// <param name="bundleId">Your app's bundle ID.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns>A response that contains signed app transaction information for a customer.</returns>
     /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/get-app-transaction-info"/>
     public async Task<AppTransactionInfoResponse> GetAppTransactionInfoAsync(
-        string transactionId,
+        string anyTransactionId,
         string bundleId,
         CancellationToken cancellationToken = default)
     {
         return await MakeRequestAsync<AppTransactionInfoResponse>(
-                path: $"/inApps/v1/transactions/appTransactions/{transactionId}",
+                path: $"/inApps/v1/transactions/appTransactions/{anyTransactionId}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Notifies the App Store server that your system has finished processing the customer's transaction.
+    /// </summary>
+    /// <param name="transactionId">The transaction identifier of the transaction to mark as finished.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/finish-transaction"/>
+    public async Task FinishTransactionAsync(
+        string transactionId,
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        await MakeRequestAsync<object?>(
+                path: $"/inApps/v1/transactions/{transactionId}/finish",
+                method: HttpMethod.Post,
+                queryParameters: null,
+                body: null,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the default message for a specific product in a specific locale, if it's configured.
+    /// </summary>
+    /// <param name="productId">The product identifier of the message.</param>
+    /// <param name="locale">The locale of the message.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The response body that contains the default configuration information.</returns>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/get-default-message"/>
+    public async Task<DefaultConfigurationResponse> GetDefaultMessageAsync(
+        string productId,
+        string locale,
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        return await MakeRequestAsync<DefaultConfigurationResponse>(
+                path: $"/inApps/v1/messaging/default/{productId}/{locale}",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Configures the URL for your Get Retention Message endpoint in the sandbox and production environments.
+    /// </summary>
+    /// <param name="request">The request body that includes your endpoint's URL.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/configure-realtime-url"/>
+    public async Task ConfigureRealtimeUrlAsync(
+        RealtimeUrlRequest request,
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        await MakeRequestAsync<object?>(
+                path: "/inApps/v1/messaging/realtime/url",
+                method: HttpMethod.Put,
+                queryParameters: null,
+                body: request,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Deletes the URL for your Get Retention Message endpoint, in the sandbox or production environments.
+    /// </summary>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/delete-realtime-url"/>
+    public async Task DeleteRealtimeUrlAsync(
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        await MakeRequestAsync<object?>(
+                path: "/inApps/v1/messaging/realtime/url",
+                method: HttpMethod.Delete,
+                queryParameters: null,
+                body: null,
+                parseResponse: false,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the URL for real-time messages that points to your Get Retention Message endpoint, which you previously configured.
+    /// </summary>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The response body that contains the URL for your Get Retention Message endpoint.</returns>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/get-realtime-url"/>
+    public async Task<RealtimeUrlResponse> GetRealtimeUrlAsync(
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        return await MakeRequestAsync<RealtimeUrlResponse>(
+                path: "/inApps/v1/messaging/realtime/url",
+                method: HttpMethod.Get,
+                queryParameters: null,
+                body: null,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Initiates a performance test of your Get Retention Message endpoint in the sandbox environment.
+    /// </summary>
+    /// <param name="request">The request body which specifies a transaction identifier of an In-App Purchase to use for this test.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The performance test response object.</returns>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/initiate-performance-test"/>
+    public async Task<PerformanceTestResponse> InitiatePerformanceTestAsync(
+        PerformanceTestRequest request,
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        return await MakeRequestAsync<PerformanceTestResponse>(
+                path: "/inApps/v1/messaging/performanceTest",
+                method: HttpMethod.Post,
+                queryParameters: null,
+                body: request,
+                parseResponse: true,
+                bundleId: bundleId,
+                cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the results of the performance test for the specified identifier.
+    /// </summary>
+    /// <param name="requestId">The ID of the performance test to return, which you receive in the <see cref="PerformanceTestResponse"/> when you call <see cref="InitiatePerformanceTestAsync"/>.</param>
+    /// <param name="bundleId">Your app's bundle ID.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>An object the API returns that describes the performance test results.</returns>
+    /// <exception cref="APIException">Thrown if a response was returned indicating the request could not be processed.</exception>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/get-performance-test-results"/>
+    public async Task<PerformanceTestResultResponse> GetPerformanceTestResultsAsync(
+        string requestId,
+        string bundleId,
+        CancellationToken cancellationToken = default)
+    {
+        return await MakeRequestAsync<PerformanceTestResultResponse>(
+                path: $"/inApps/v1/messaging/performanceTest/result/{requestId}",
                 method: HttpMethod.Get,
                 queryParameters: null,
                 body: null,

@@ -305,6 +305,54 @@ public enum APIError
     TransactionIdIsNotOriginalTransactionId = 4000187,
 
     /// <summary>
+    /// An error the API returns that indicates the performance test request is invalid.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/invalidperformancetestrequesterror"/>
+    InvalidPerformanceTestRequest = 4000211,
+
+    /// <summary>
+    /// An error that indicates the request ID is invalid.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/invalidrequestiderror"/>
+    InvalidRequestId = 4000212,
+
+    /// <summary>
+    /// An error that indicates an error with an existing test.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/existingperformancetestrunerror"/>
+    ExistingPerformanceTestRun = 4000213,
+
+    /// <summary>
+    /// An error that indicates the URL is invalid.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/badrequestreaaltimeurlerror"/>
+    BadRequestRealtimeUrl = 4000215,
+
+    /// <summary>
+    /// An error that indicates the image size provided is invalid.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/badrequestimagesizeerror"/>
+    BadRequestImageSize = 4000216,
+
+    /// <summary>
+    /// An error that indicates there are too many bullet points.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/badrequesttoomanybulletpointserror"/>
+    BadRequestTooManyBulletPoints = 4000218,
+
+    /// <summary>
+    /// An error that indicates the text for a bullet point is too long.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/badrequestbulletpointtexttoolongerror"/>
+    BadRequestBulletPointTextTooLong = 4000219,
+
+    /// <summary>
+    /// An error that indicates that no image object is included, but the request indicates that the header should be placed above the image.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/badrequestaboveimageerequiresanimageerror"/>
+    BadRequestAboveImageRequiresAnImage = 4000224,
+
+    /// <summary>
     /// An error that indicates the subscription doesn't qualify for a renewal-date extension due to its subscription state.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/subscriptionextensionineligibleerror"/>
@@ -351,6 +399,12 @@ public enum APIError
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/imageinuseerror"/>
     ImageInUse = 4030019,
+
+    /// <summary>
+    /// An error that indicates that passing a performance test is required before you can set a URL for the production environment.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/forbiddennopassingtesterror"/>
+    ForbiddenNoPassingTest = 4030026,
 
     /// <summary>
     /// An error that indicates the App Store account wasn't found.
@@ -425,10 +479,28 @@ public enum APIError
     MessageNotFound = 4040015,
 
     /// <summary>
+    /// An error the API returns if the service can't find the specified test run.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/performancetestrunnotfounderror"/>
+    PerformanceTestRunNotFound = 4040018,
+
+    /// <summary>
     /// An error response that indicates an app transaction doesn't exist for the specified customer.
     /// </summary>
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/apptransactiondoesnotexisterror"/>
     AppTransactionDoesNotExist = 4040019,
+
+    /// <summary>
+    /// An error that indicates a default message isn't configured.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/defaultmessagenotfounderror"/>
+    DefaultMessageNotFound = 4040020,
+
+    /// <summary>
+    /// An error that indicates that the URL for your endpoint isn't configured.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/realtimeurlnotfounderror"/>
+    RealtimeUrlNotFound = 4040021,
 
     /// <summary>
     /// An error that indicates the image identifier already exists.

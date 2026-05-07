@@ -175,4 +175,25 @@ public sealed class JWSRenewalInfoDecodedPayload : DecodedSignedData
     /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/offerPeriod"/>
     [JsonPropertyName("offerPeriod")]
     public string? OfferPeriod { get; set; }
+
+    /// <summary>
+    /// Renewal information that is present only for Advanced Commerce SKUs.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/advancedcommercerenewalinfo"/>
+    [JsonPropertyName("advancedCommerceInfo")]
+    public AdvancedCommerceRenewalInfo? AdvancedCommerceInfo { get; set; }
+
+    /// <summary>
+    /// Commitment information that applies at the next renewal.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/renewalcommitmentinfo"/>
+    [JsonPropertyName("commitmentInfo")]
+    public RenewalCommitmentInfo? CommitmentInfo { get; set; }
+
+    /// <summary>
+    /// The billing plan type that applies at the next renewal.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/renewalbillingplantype"/>
+    [JsonPropertyName("renewalBillingPlanType")]
+    public RenewalBillingPlanType? RenewalBillingPlanType { get; set; }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Enjna.AppStoreServerLibrary.Models.Enums;
 
 namespace Enjna.AppStoreServerLibrary.Models;
 
@@ -28,4 +29,18 @@ public sealed class UploadMessageRequestBody
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/uploadmessageimage"/>
     [JsonPropertyName("image")]
     public UploadMessageImage? Image { get; set; }
+
+    /// <summary>
+    /// The position of header text. Defaults to placing header text above the body.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/headerposition"/>
+    [JsonPropertyName("headerPosition")]
+    public HeaderPosition? HeaderPosition { get; set; }
+
+    /// <summary>
+    /// An optional array of bullet points.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/bulletpoint"/>
+    [JsonPropertyName("bulletPoints")]
+    public BulletPoint[]? BulletPoints { get; set; }
 }

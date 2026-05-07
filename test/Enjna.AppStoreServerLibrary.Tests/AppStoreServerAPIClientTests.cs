@@ -64,7 +64,7 @@ public class AppStoreServerAPIClientTests
     {
         var request = handler.CapturedRequest!;
 
-        Assert.Contains("enjna-app-store-server-library/dotnet/2.0.0", request.Headers.GetValues("User-Agent"));
+        Assert.Contains("enjna-app-store-server-library/dotnet/2.1.0", request.Headers.GetValues("User-Agent"));
         Assert.Contains("application/json", request.Headers.Accept.ToString());
 
         var auth = request.Headers.Authorization;
@@ -896,5 +896,182 @@ public class AppStoreServerAPIClientTests
         await client.RequestTestNotificationAsync("com.example.two",
             cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal("com.example.two", GetBearerBundleId(handler));
+    }
+
+    // 39. FinishTransactionAsync
+    [Fact]
+    public async Task FinishTransaction()
+    {
+        var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
+
+        await client.FinishTransactionAsync("999999", BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Post, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/transactions/999999/finish", handler.CapturedRequest.RequestUri!.AbsolutePath);
+    }
+
+    // 40. GetDefaultMessageAsync
+    [Fact]
+    public async Task GetDefaultMessage()
+    {
+        var (client, handler) = GetClientWithBody(
+            "models.getDefaultMessageResponse.json", HttpStatusCode.OK);
+
+        var response = await client.GetDefaultMessageAsync("com.example.product", "en-US", BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/default/com.example.product/en-US",
+            handler.CapturedRequest.RequestUri!.AbsolutePath);
+        Assert.NotNull(response.MessageIdentifier);
+    }
+
+    // 41. ConfigureRealtimeUrlAsync
+    [Fact]
+    public async Task ConfigureRealtimeUrl()
+    {
+        var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
+
+        var request = new RealtimeUrlRequest
+        {
+            RealtimeUrl = "https://example.com/retention"
+        };
+
+        await client.ConfigureRealtimeUrlAsync(request, BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/realtime/url", handler.CapturedRequest.RequestUri!.AbsolutePath);
+        Assert.NotNull(handler.CapturedRequestBody);
+
+        using var body = JsonDocument.Parse(handler.CapturedRequestBody);
+        Assert.Equal("https://example.com/retention", body.RootElement.GetProperty("realtimeURL").GetString());
+    }
+
+    // 42. DeleteRealtimeUrlAsync
+    [Fact]
+    public async Task DeleteRealtimeUrl()
+    {
+        var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
+
+        await client.DeleteRealtimeUrlAsync(BundleId, cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Delete, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/realtime/url", handler.CapturedRequest.RequestUri!.AbsolutePath);
+    }
+
+    // 43. GetRealtimeUrlAsync
+    [Fact]
+    public async Task GetRealtimeUrl()
+    {
+        var (client, handler) = GetClientWithBody(
+            "models.getRealtimeUrlResponse.json", HttpStatusCode.OK);
+
+        var response = await client.GetRealtimeUrlAsync(BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/realtime/url", handler.CapturedRequest.RequestUri!.AbsolutePath);
+        Assert.NotNull(response.RealtimeUrl);
+    }
+
+    // 44. InitiatePerformanceTestAsync
+    [Fact]
+    public async Task InitiatePerformanceTest()
+    {
+        var (client, handler) = GetClientWithBody(
+            "models.performanceTestResponse.json", HttpStatusCode.OK);
+
+        var request = new PerformanceTestRequest
+        {
+            OriginalTransactionId = "999999"
+        };
+
+        var response = await client.InitiatePerformanceTestAsync(request, BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Post, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/performanceTest", handler.CapturedRequest.RequestUri!.AbsolutePath);
+        Assert.NotNull(response.RequestId);
+        Assert.NotNull(response.Config);
+    }
+
+    // 45. GetPerformanceTestResultsAsync
+    [Fact]
+    public async Task GetPerformanceTestResults()
+    {
+        var (client, handler) = GetClientWithBody(
+            "models.performanceTestResultResponse.json", HttpStatusCode.OK);
+
+        var response = await client.GetPerformanceTestResultsAsync("test-request-id", BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Get, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/performanceTest/result/test-request-id",
+            handler.CapturedRequest.RequestUri!.AbsolutePath);
+        Assert.NotNull(response.Config);
+        Assert.NotNull(response.ResponseTimes);
+    }
+
+    // 46. UploadImageAsync with imageSize
+    [Fact]
+    public async Task UploadImage_WithImageSize()
+    {
+        var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
+
+        await client.UploadImageAsync("test-image-id", [0x89, 0x50, 0x4E, 0x47], BundleId,
+            imageSize: ImageSize.BulletPoint, cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.Equal(HttpMethod.Put, handler.CapturedRequest!.Method);
+        Assert.Equal("/inApps/v1/messaging/image/test-image-id", handler.CapturedRequest.RequestUri!.AbsolutePath);
+        Assert.Contains("imageSize=BULLET_POINT", handler.CapturedRequest.RequestUri.Query);
+    }
+
+    // 47. UploadMessageAsync with bullet points and headerPosition
+    [Fact]
+    public async Task UploadMessage_WithBulletPoints()
+    {
+        var (client, handler) = GetClientWithBody(null, HttpStatusCode.OK);
+
+        var request = new UploadMessageRequestBody
+        {
+            Header = "Header text",
+            Body = "Body text",
+            HeaderPosition = HeaderPosition.AboveImage,
+            BulletPoints =
+            [
+                new BulletPoint
+                {
+                    Text = "Point 1",
+                    ImageIdentifier = "img-1",
+                    AltText = "Bullet image 1"
+                }
+            ]
+        };
+
+        await client.UploadMessageAsync("msg-id", request, BundleId,
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        AssertCommonHeaders(handler);
+        Assert.NotNull(handler.CapturedRequestBody);
+
+        using var body = JsonDocument.Parse(handler.CapturedRequestBody);
+        var root = body.RootElement;
+        Assert.Equal("ABOVE_IMAGE", root.GetProperty("headerPosition").GetString());
+        var bullets = root.GetProperty("bulletPoints");
+        Assert.Equal(JsonValueKind.Array, bullets.ValueKind);
+        Assert.Equal(1, bullets.GetArrayLength());
+        Assert.Equal("Point 1", bullets[0].GetProperty("text").GetString());
+        Assert.Equal("img-1", bullets[0].GetProperty("imageIdentifier").GetString());
+        Assert.Equal("Bullet image 1", bullets[0].GetProperty("altText").GetString());
     }
 }

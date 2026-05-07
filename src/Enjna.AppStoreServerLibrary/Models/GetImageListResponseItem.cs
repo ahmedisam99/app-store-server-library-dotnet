@@ -22,4 +22,11 @@ public sealed class GetImageListResponseItem
     /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/imagestate"/>
     [JsonPropertyName("imageState")]
     public ImageState? ImageState { get; set; }
+
+    /// <summary>
+    /// The size of the image.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/retentionmessaging/imagesize"/>
+    [JsonPropertyName("imageSize")]
+    public ImageSize? ImageSize { get; set; }
 }

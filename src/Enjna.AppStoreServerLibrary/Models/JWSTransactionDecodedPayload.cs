@@ -249,4 +249,25 @@ public sealed class JWSTransactionDecodedPayload : DecodedSignedData
     /// <seealso href="https://developer.apple.com/documentation/appstoreservernotifications/revocationpercentage"/>
     [JsonPropertyName("revocationPercentage")]
     public long? RevocationPercentage { get; set; }
+
+    /// <summary>
+    /// Transaction information that is present only for Advanced Commerce SKUs.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/advancedcommercetransactioninfo"/>
+    [JsonPropertyName("advancedCommerceInfo")]
+    public AdvancedCommerceTransactionInfo? AdvancedCommerceInfo { get; set; }
+
+    /// <summary>
+    /// The billing plan type for the transaction.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/billingplantype"/>
+    [JsonPropertyName("billingPlanType")]
+    public BillingPlanType? BillingPlanType { get; set; }
+
+    /// <summary>
+    /// Commitment information for the transaction.
+    /// </summary>
+    /// <seealso href="https://developer.apple.com/documentation/appstoreserverapi/transactioncommitmentinfo"/>
+    [JsonPropertyName("commitmentInfo")]
+    public TransactionCommitmentInfo? CommitmentInfo { get; set; }
 }
