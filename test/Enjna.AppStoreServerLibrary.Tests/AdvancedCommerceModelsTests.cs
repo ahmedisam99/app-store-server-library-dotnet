@@ -300,4 +300,112 @@ public class AdvancedCommerceModelsTests
         Assert.Single(model.ImageIdentifiers);
         Assert.Equal(ImageSize.FullSize, model.ImageIdentifiers[0].ImageSize);
     }
+
+    [Fact]
+    public void DeserializesSubscriptionMigrateDescriptors()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionMigrateDescriptors>(
+            "models.advancedCommerceSubscriptionMigrateDescriptors.json");
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionMigrateItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionMigrateItem>(
+            "models.advancedCommerceSubscriptionMigrateItem.json");
+        Assert.Equal("sku", model.Sku);
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionMigrateRenewalItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionMigrateRenewalItem>(
+            "models.advancedCommerceSubscriptionMigrateRenewalItem.json");
+        Assert.Equal("sku", model.Sku);
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionModifyAddItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionModifyAddItem>(
+            "models.advancedCommerceSubscriptionModifyAddItem.json");
+        Assert.Equal("sku", model.Sku);
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+        Assert.Equal(12000L, model.Price);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionModifyDescriptors()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionModifyDescriptors>(
+            "models.advancedCommerceSubscriptionModifyDescriptors.json");
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+        Assert.Equal(AdvancedCommerceEffective.Immediately, model.Effective);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionModifyPeriodChange()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionModifyPeriodChange>(
+            "models.advancedCommerceSubscriptionModifyPeriodChange.json");
+        Assert.Equal(AdvancedCommercePeriod.P3M, model.Period);
+        Assert.Equal(AdvancedCommerceEffective.Immediately, model.Effective);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionModifyRemoveItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionModifyRemoveItem>(
+            "models.advancedCommerceSubscriptionModifyRemoveItem.json");
+        Assert.Equal("sku", model.Sku);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionPriceChangeItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionPriceChangeItem>(
+            "models.advancedCommerceSubscriptionPriceChangeItem.json");
+        Assert.Equal("sku", model.Sku);
+        Assert.Equal(16000L, model.Price);
+        Assert.NotNull(model.DependentSkus);
+        Assert.Equal("dependentSKU", model.DependentSkus[0]);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionReactivateItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionReactivateItem>(
+            "models.advancedCommerceSubscriptionReactivateItem.json");
+        Assert.Equal("sku", model.Sku);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionChangeMetadataDescriptors()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionChangeMetadataDescriptors>(
+            "models.advancedCommerceSubscriptionChangeMetadataDescriptors.json");
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+        Assert.Equal(AdvancedCommerceEffective.Immediately, model.Effective);
+    }
+
+    [Fact]
+    public void DeserializesSubscriptionChangeMetadataItem()
+    {
+        var model = Deserialize<AdvancedCommerceSubscriptionChangeMetadataItem>(
+            "models.advancedCommerceSubscriptionChangeMetadataItem.json");
+        Assert.Equal("sku", model.Sku);
+        Assert.Equal("currentSku", model.CurrentSku);
+        Assert.Equal("description", model.Description);
+        Assert.Equal("displayName", model.DisplayName);
+        Assert.Equal(AdvancedCommerceEffective.NextBillCycle, model.Effective);
+    }
 }
